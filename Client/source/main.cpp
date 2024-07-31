@@ -9,7 +9,7 @@ namespace sdk = yamp::sdk;
 
 BOOL WINAPI DllMain(HINSTANCE instanceDll, DWORD reason, LPVOID reserved)
 {
-    static fw::Logger* logger = fw::Logger::Get("js");
+    fw::Logger* logger = fw::Logger::Get("js");
     logger->SetPattern(fmt::format("[JS] %s", fw::Logger::MessagePattern));
 
     if (reason == DLL_PROCESS_ATTACH)
@@ -28,7 +28,7 @@ BOOL WINAPI DllMain(HINSTANCE instanceDll, DWORD reason, LPVOID reserved)
 
     if (reason == DLL_PROCESS_DETACH)
     {
-        printf("[JS] Runtime is unloading...\n");
+        logger->Info("Runtime is unloading...");
     }
 
     return true;
