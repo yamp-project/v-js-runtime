@@ -21,5 +21,5 @@ file(GLOB_RECURSE PROJECT_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/source/*.h ${
 add_library(${PROJECT_NAME} SHARED ${PROJECT_SOURCE_FILES})
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/source)
-target_link_libraries(${PROJECT_NAME} PUBLIC yamp::sdk)
+target_link_libraries(${PROJECT_NAME} PUBLIC YampFramework yamp::sdk)
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
