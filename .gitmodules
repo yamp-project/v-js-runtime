@@ -1,0 +1,3 @@
+[submodule "Vendors/v-sdk"]
+	path = Vendors/v-sdk
+	url = git@github.com:yamp-project/v-sdk.git
