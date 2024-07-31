@@ -16,10 +16,10 @@ else()
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/win64/${CMAKE_BUILD_TYPE})
 endif()
 
-file(GLOB_RECURSE PROJECT_SOURCE_FILES "./source/*.h" "./source/*.cpp")
+file(GLOB_RECURSE PROJECT_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/source/*.h ${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp)
 
 add_library(${PROJECT_NAME} SHARED ${PROJECT_SOURCE_FILES})
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}"/source")
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/source)
 target_link_libraries(${PROJECT_NAME} PUBLIC yamp::sdk)
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
