@@ -1,7 +1,7 @@
-#include <v-sdk/factories/RuntimeFactory.hpp>
-#include <fw/Logger.h>
 #include "Runtime.h"
 
+#include <v-sdk/factories/RuntimeFactory.hpp>
+#include <fw/Logger.h>
 #include <Windows.h>
 #include <iostream>
 
@@ -10,7 +10,7 @@ namespace sdk = yamp::sdk;
 BOOL WINAPI DllMain(HINSTANCE instanceDll, DWORD reason, LPVOID reserved)
 {
     fw::Logger* logger = fw::Logger::Get("js");
-    logger->SetPattern(fmt::format("[JS] %s", fw::Logger::MessagePattern));
+    logger->SetPattern(fmt::format("[JS] {}", fw::Logger::MessagePattern));
 
     if (reason == DLL_PROCESS_ATTACH)
     {
