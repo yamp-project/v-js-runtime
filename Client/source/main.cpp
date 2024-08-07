@@ -3,7 +3,6 @@
 #include <v-sdk/factories/RuntimeFactory.hpp>
 #include <fw/Logger.h>
 #include <Windows.h>
-#include <iostream>
 
 namespace sdk = yamp::sdk;
 
@@ -21,9 +20,11 @@ BOOL WINAPI DllMain(HINSTANCE instanceDll, DWORD reason, LPVOID reserved)
         logger->Info("Version: 0.0.1-alpha");
         logger->Info("Runtime factory instance: {}\n", fmt::ptr(runtimeFactory));
 
-        js::Runtime* runtime = new js::Runtime;
+        js::Runtime* runtime = js::Runtime::GetInstance();
         sdk::Result result = runtimeFactory->RegisterRuntime(runtime);
+
         result = runtimeFactory->RegisterRuntimeResourceHandling("js", runtime);
+        runtime->OnStart();
     }
 
     if (reason == DLL_PROCESS_DETACH)

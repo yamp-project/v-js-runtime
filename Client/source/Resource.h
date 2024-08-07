@@ -21,6 +21,8 @@ namespace js
         sdk::Result OnStop() override;
         sdk::Result OnTick() override;
 
+        void RunCode();
+
     private:
         sdk::ResourceInformation* m_ResourceInformation;
     };
