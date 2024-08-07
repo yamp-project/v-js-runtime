@@ -4,9 +4,6 @@
 [submodule "Vendors/framework"]
 	path = Vendors/framework
 	url = git@github.com:yamp-project/framework.git
-[submodule "Vendors/v8"]
-	path = Vendors/v8
-	url = git@github.com:yamp-project/v8.git
 [submodule "Vendors/v8helper"]
 	path = Vendors/v8helper
 	url = git@github.com:yamp-project/v8helper.git
