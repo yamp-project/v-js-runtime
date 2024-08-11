@@ -3,12 +3,7 @@
 #include "helpers.h"
 
 #include <filesystem>
-#include <iostream>
 #include <fstream>
-
-#include <fw/Logger.h>
-#include <v8helper.h>
-#include <v8.h>
 
 static v8::MaybeLocal<v8::Module> DefaultImportCallback(v8::Local<v8::Context>, v8::Local<v8::String>, v8::Local<v8::FixedArray>, v8::Local<v8::Module>)
 {
@@ -17,9 +12,18 @@ static v8::MaybeLocal<v8::Module> DefaultImportCallback(v8::Local<v8::Context>, 
 
 namespace js
 {
-    Resource::Resource(sdk::ResourceInformation* resourceInformation) : m_ResourceInformation(resourceInformation)
+    Resource::Resource(sdk::ResourceInformation* resourceInformation, v8::Isolate* isolate) : m_ResourceInformation(resourceInformation), m_Isolate(isolate)
     {
-        //
+        std::filesystem::path resourcePath = resourceInformation->m_Path;
+        m_mainFilePath = (resourcePath / resourceInformation->m_MainFile).string();
+
+        v8::Locker locker(isolate);
+        v8::Isolate::Scope isolateScope(isolate);
+        v8::HandleScope handleScope(isolate);
+        SetupContext();
+
+        v8::Context::Scope scope(m_Context.Get(isolate));
+        SetupGlobals();
     }
 
     Resource::~Resource()
@@ -27,65 +31,90 @@ namespace js
         //
     }
 
-    sdk::Result Resource::OnStart()
+    void Resource::SetupContext()
     {
-        std::filesystem::path resourcePath = m_ResourceInformation->m_Path;
-        std::filesystem::path mainFilePath = resourcePath / m_ResourceInformation->m_MainFile;
+        v8helper::Namespace::Initialize(m_Isolate);
+        v8helper::Module::Initialize(m_Isolate);
+        v8helper::Class::Initialize(m_Isolate);
 
-        std::string mainFilePathStr = mainFilePath.string();
-        if (!mainFilePathStr.ends_with(".js"))
-        {
-            std::cerr << "No valid js file extension: " << mainFilePathStr << std::endl;
-            return {false};
-        }
+        auto microtaskQueue = v8::MicrotaskQueue::New(m_Isolate, v8::MicrotasksPolicy::kExplicit);
+        v8::Local<v8::Context> _context = v8::Context::New(m_Isolate, nullptr, v8::Local<v8::ObjectTemplate>(), v8::Local<v8::Value>(), nullptr, microtaskQueue.get());
+        m_Context.Reset(m_Isolate, _context);
 
-        auto result = ReadFile(mainFilePathStr);
+        Assert(!m_Context.IsEmpty(), "Failed to create context");
+    }
+
+    void Resource::SetupGlobals()
+    {
+        v8helper::Object global = m_Context.Get(m_Isolate)->Global();
+        global.SetMethod("print", Print);
+    }
+
+    bool Resource::RunCode(std::string_view jsFilePath)
+    {
+        auto result = ReadFile(jsFilePath);
         if (!result.has_value())
         {
-            std::cerr << "Failed to read file: " << mainFilePathStr << std::endl;
-            return {false};
+            Log().Error("Failed to read file: {}", jsFilePath);
+            return false;
         }
 
-        Runtime* runtime = Runtime::GetInstance();
-        auto context = runtime->GetContext();
-        auto isolate = runtime->GetIsolate();
-
-        v8::Locker locker(isolate);
-        v8::Isolate::Scope isolateScope(isolate);
-        v8::HandleScope handleScope(isolate);
-        v8::Context::Scope ctxScope(context.Get(isolate));
-
-        v8::ScriptOrigin origin{isolate, v8helper::String("<script>"), 0, 0, false, 0, v8::Local<v8::Value>(), false, false, true, v8::Local<v8::PrimitiveArray>()};
+        v8::ScriptOrigin origin{m_Isolate, v8helper::String("<script>"), 0, 0, false, 0, v8::Local<v8::Value>(), false, false, true, v8::Local<v8::PrimitiveArray>()};
         v8::ScriptCompiler::Source compilerSource{v8helper::String(result.value()), origin};
-        v8::MaybeLocal<v8::Module> maybeModule = v8::ScriptCompiler::CompileModule(isolate, &compilerSource);
+        v8::MaybeLocal<v8::Module> maybeModule = v8::ScriptCompiler::CompileModule(m_Isolate, &compilerSource);
+
         v8::Local<v8::Module> mod;
-        Assert(maybeModule.ToLocal(&mod), "Failed to compile module");
+        if (!maybeModule.ToLocal(&mod))
+        {
+            Log().Error("Failed to compile module");
+            return false;
+        }
 
-        v8::Maybe<bool> instantiated = mod->InstantiateModule(context.Get(isolate), DefaultImportCallback);
-        Assert(instantiated.FromMaybe(false) && mod->GetStatus() == v8::Module::Status::kInstantiated, "Failed to instantiate module");
+        v8::Maybe<bool> instantiated = mod->InstantiateModule(m_Context.Get(m_Isolate), DefaultImportCallback);
+        if (!instantiated.FromMaybe(false) || mod->GetStatus() != v8::Module::Status::kInstantiated)
+        {
+            Log().Error("Failed to instantiate module");
+            return false;
+        }
 
-        auto _ = mod->Evaluate(context.Get(isolate));
-        Assert(mod->GetStatus() == v8::Module::Status::kEvaluated, "Failed to evaluate module", false);
+        auto _ = mod->Evaluate(m_Context.Get(m_Isolate));
+        if (mod->GetStatus() != v8::Module::Status::kEvaluated)
+        {
+            Log().Error("Failed to evaluate module");
+            return false;
+        }
 
         if (mod->GetStatus() == v8::Module::kErrored)
         {
             v8helper::Object exceptionObj = mod->GetException().As<v8::Object>();
-            std::cout << "[JS] " << exceptionObj.Get<std::string>("message") << std::endl;
+            Log().Error("{}", exceptionObj.Get<std::string>("message"));
+
             std::string stack = exceptionObj.Get<std::string>("stack");
             if (!stack.empty())
             {
-                std::cout << stack << std::endl;
+                Log().Error("{}", stack);
             }
 
-            return {false};
+            return false;
         }
 
-        return {true};
+        return true;
+    }
+
+    sdk::Result Resource::OnStart()
+    {
+        v8::Locker locker(m_Isolate);
+        v8::Isolate::Scope isolateScope(m_Isolate);
+        v8::HandleScope handleScope(m_Isolate);
+        v8::Context::Scope ctxScope(m_Context.Get(m_Isolate));
+
+        bool status = RunCode(m_mainFilePath);
+        return {status};
     }
 
     sdk::Result Resource::OnStop()
     {
-        printf("Resource::OnStop\n");
+        Log().Info("Resource::Stop");
         return {true};
     }
 
