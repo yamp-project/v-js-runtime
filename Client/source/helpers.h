@@ -2,18 +2,17 @@
 
 #include <string_view>
 #include <filesystem>
-#include <iostream>
 #include <fstream>
 
 #include <fw/Logger.h>
 #include <v8helper.h>
 #include <v8.h>
 
-inline void Assert(bool cond, std::string_view error, bool terminate = true)
+inline void Assert(bool condition, std::string_view error, bool terminate = true)
 {
-    if (!cond)
+    if (!condition)
     {
-        std::cerr << error << std::endl;
+        fw::Logger::Get("JS")->Error("{}", error);
         if (terminate)
         {
             std::terminate();
