@@ -1,9 +1,9 @@
 #pragma once
 
-#include <fw/utils/InstanceBase.h>
 #include <v-sdk/Runtime.hpp>
+#include <fw/utils/InstanceBase.h>
+#include <fw/Logger.h>
 
-#include <v8helper.h>
 #include <v8.h>
 
 namespace js
@@ -33,27 +33,18 @@ namespace js
 
         sdk::Result OnHandleResourceLoad(sdk::ResourceInformation* Information) override;
 
-        [[nodiscard]] inline v8::Isolate* GetIsolate() const
+        [[nodiscard]] inline fw::Logger& Log()
         {
-            return m_Isolate;
-        }
-
-        [[nodiscard]] inline v8helper::Persistent<v8::Context> GetContext() const
-        {
-            return m_Context;
+            return *fw::Logger::Get("JS::Runtime");
         }
 
         IMPLEMENT_INSTANCE_FUNCTION(Runtime);
 
     private:
-        v8helper::Persistent<v8::Context> m_Context;
+        std::vector<Resource*> m_LoadedResources;
         std::unique_ptr<v8::Platform> m_Platform;
         v8::Isolate* m_Isolate;
 
-        std::vector<Resource*> m_LoadedResources;
-
         void SetupIsolate();
-        void SetupContext();
-        void SetupGlobals();
     };
 } // namespace js

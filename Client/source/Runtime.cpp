@@ -4,10 +4,10 @@
 
 #include <v-sdk/factories/ResourceFactory.hpp>
 #include <libplatform/libplatform.h>
-#include <fw/Logger.h>
+
 namespace js
 {
-    Runtime::Runtime() : m_Isolate(nullptr)
+    Runtime::Runtime() : m_LoadedResources(), m_Isolate(nullptr)
     {
         //
     }
@@ -15,53 +15,6 @@ namespace js
     Runtime::~Runtime()
     {
         //
-    }
-
-    void Runtime::OnStart()
-    {
-        SetupIsolate();
-        v8::Locker locker(m_Isolate);
-        v8::Isolate::Scope isolateScope(m_Isolate);
-        v8::HandleScope handleScope(m_Isolate);
-
-        SetupContext();
-        v8::Context::Scope scope(m_Context.Get(m_Isolate));
-
-        SetupGlobals();
-    }
-
-    void Runtime::OnStop()
-    {
-        v8helper::ClassInstanceCache::Clear(m_Isolate);
-        v8helper::Namespace::Cleanup(m_Isolate);
-        v8helper::Module::Cleanup(m_Isolate);
-        v8helper::Class::Cleanup(m_Isolate);
-
-        delete m_Isolate->GetArrayBufferAllocator();
-
-        v8::V8::Dispose();
-        v8::V8::DisposePlatform();
-    }
-
-    void Runtime::OnTick()
-    {
-        v8::Locker locker(m_Isolate);
-        v8::Isolate::Scope isolateScope(m_Isolate);
-        v8::HandleScope handleScope(m_Isolate);
-
-        fw::Logger::Get("js")->Info("tick..");
-        v8::platform::PumpMessageLoop(m_Platform.get(), m_Isolate);
-    }
-
-    sdk::Result Runtime::OnHandleResourceLoad(sdk::ResourceInformation* information)
-    {
-        fw::Logger::Get("js")->Info("NEW RESOURCE LOADED {} {}", information->m_Path, information->m_MainFile);
-        sdk::IResourceFactory* resourceFactory = sdk::IResourceFactory::GetInstance();
-        Resource* newResource = new Resource(information);
-
-        sdk::Result resourceCreationResult = resourceFactory->RegisterResource(newResource);
-        m_LoadedResources.push_back(newResource);
-        return {true};
     }
 
     void Runtime::SetupIsolate()
@@ -84,21 +37,49 @@ namespace js
         m_Isolate->SetCaptureStackTraceForUncaughtExceptions(true, 5);
     }
 
-    void Runtime::SetupContext()
+    void Runtime::OnStart()
     {
-        v8helper::Namespace::Initialize(m_Isolate);
-        v8helper::Module::Initialize(m_Isolate);
-        v8helper::Class::Initialize(m_Isolate);
+        SetupIsolate();
 
-        auto microtaskQueue = v8::MicrotaskQueue::New(m_Isolate, v8::MicrotasksPolicy::kExplicit);
-        v8::Local<v8::Context> _context = v8::Context::New(m_Isolate, nullptr, v8::Local<v8::ObjectTemplate>(), v8::Local<v8::Value>(), nullptr, microtaskQueue.get());
-        m_Context.Reset(m_Isolate, _context);
-        Assert(!m_Context.IsEmpty(), "Failed to create context");
+        Log().Info("Succesfully started");
     }
 
-    void Runtime::SetupGlobals()
+    void Runtime::OnStop()
     {
-        v8helper::Object global = m_Context.Get(m_Isolate)->Global();
-        global.SetMethod("print", Print);
+        v8helper::ClassInstanceCache::Clear(m_Isolate);
+        v8helper::Namespace::Cleanup(m_Isolate);
+        v8helper::Module::Cleanup(m_Isolate);
+        v8helper::Class::Cleanup(m_Isolate);
+
+        delete m_Isolate->GetArrayBufferAllocator();
+
+        v8::V8::Dispose();
+        v8::V8::DisposePlatform();
+    }
+
+    void Runtime::OnTick()
+    {
+        v8::Locker locker(m_Isolate);
+        v8::Isolate::Scope isolateScope(m_Isolate);
+        v8::HandleScope handleScope(m_Isolate);
+
+        v8::platform::PumpMessageLoop(m_Platform.get(), m_Isolate);
+        Log().Info("tick..");
+    }
+
+    sdk::Result Runtime::OnHandleResourceLoad(sdk::ResourceInformation* resourceInformation)
+    {
+        if (!std::string(resourceInformation->m_MainFile).ends_with(".js"))
+        {
+            Log().Error("The resource {} has no main file valid js file extension `{}`", resourceInformation->m_Name, resourceInformation->m_MainFile);
+            return {false};
+        }
+
+        Resource* newResource = new Resource(resourceInformation, m_Isolate);
+        sdk::Result resourceCreationResult = sdk::IResourceFactory::GetInstance()->RegisterResource(newResource);
+        m_LoadedResources.push_back(newResource);
+
+        Log().Info("Resource loaded: {} {}", resourceInformation->m_Path, resourceInformation->m_MainFile);
+        return {true};
     }
 } // namespace js
