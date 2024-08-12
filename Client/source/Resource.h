@@ -2,7 +2,6 @@
 
 #include <v-sdk/Resource.hpp>
 #include <fw/Logger.h>
-
 #include <v8helper.h>
 #include <v8.h>
 
@@ -10,16 +9,28 @@ namespace js
 {
     namespace sdk = yamp::sdk;
 
+    class EventManager;
     class Resource : public sdk::IResourceBase
     {
     public:
         Resource(sdk::ResourceInformation* information, v8::Isolate* isolate);
         virtual ~Resource();
 
+        // TODO: rename with the plural form
         [[nodiscard]] inline sdk::ResourceInformation* GetResourceInformation() override
         {
-            return m_ResourceInformation;
+            return m_ResourceInformations;
         };
+
+        [[nodiscard]] inline v8::Isolate* GetIsolate() const
+        {
+            return m_Isolate;
+        }
+
+        [[nodiscard]] inline EventManager* GetEventManager() const
+        {
+            return m_Events;
+        }
 
         [[nodiscard]] inline v8helper::Persistent<v8::Context> GetContext() const
         {
@@ -28,7 +39,7 @@ namespace js
 
         [[nodiscard]] inline fw::Logger& Log()
         {
-            return *fw::Logger::Get(fmt::format("JS::{}", m_ResourceInformation->m_Name));
+            return *fw::Logger::Get(fmt::format("JS::{}", m_ResourceInformations->m_Name));
         }
 
         sdk::Result OnStart() override;
@@ -36,8 +47,9 @@ namespace js
         sdk::Result OnTick() override;
 
     private:
-        sdk::ResourceInformation* m_ResourceInformation;
+        sdk::ResourceInformation* m_ResourceInformations;
         v8::Isolate* m_Isolate;
+        EventManager* m_Events;
 
         v8helper::Persistent<v8::Context> m_Context;
         std::string m_mainFilePath;

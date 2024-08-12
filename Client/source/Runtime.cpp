@@ -1,13 +1,50 @@
 #include "Runtime.h"
 #include "Resource.h"
 #include "helpers.h"
+#include "events/EventManager.h"
 
-#include <v-sdk/factories/ResourceFactory.hpp>
 #include <libplatform/libplatform.h>
+#include <v-sdk/factories/ResourceFactory.hpp>
+#include <v-sdk/Result.hpp>
+#include <Windows.h>
 
 namespace js
 {
-    Runtime::Runtime() : m_LoadedResources(), m_Isolate(nullptr)
+    void Runtime::OnEvent(const char* eventName, PolymorphicalValue* args[], size_t size)
+    {
+        auto logger = fw::Logger::Get("rt-debug");
+        logger->Info("RECEIVED EVENT {} with {} arguments", eventName, size);
+
+        for (auto resource : js::Runtime::GetInstance()->GetResources())
+        {
+            resource->GetEventManager()->Fire(eventName);
+        }
+
+        // for (size_t i = 0; i < size; ++i)
+        // {
+        //     PolymorphicalValue* arg = args[i];
+
+        //     switch (arg->m_Type)
+        //     {
+        //     case PolymorphicalValueType::NUMBER:
+        //         logger->Info("argument {} is of type number and its value is: {}", i, arg->As<double>());
+        //         break;
+
+        //     case PolymorphicalValueType::BOOLEAN:
+        //         logger->Info("argument {} is of type boolean and its value is: {}", i, arg->As<bool>());
+        //         break;
+
+        //     case PolymorphicalValueType::STRING:
+        //         logger->Info("argument {} is of type string and its value is: {}", i, arg->As<const char*>());
+        //         break;
+
+        //     default:
+        //         break;
+        //     }
+        // }
+    }
+
+    Runtime::Runtime() : m_Resources(), m_Isolate(nullptr)
     {
         //
     }
@@ -42,6 +79,11 @@ namespace js
         SetupIsolate();
 
         Log().Info("Succesfully started");
+
+        // TODO: move to the sdk
+        HMODULE clientModule = GetModuleHandleA("yamp_client.dll");
+        auto RegisterOnEventCallback = reinterpret_cast<void (*)(void(const char*, PolymorphicalValue**, size_t))>(GetProcAddress(clientModule, "OnEvent"));
+        RegisterOnEventCallback(Runtime::OnEvent);
     }
 
     void Runtime::OnStop()
@@ -75,11 +117,32 @@ namespace js
             return {false};
         }
 
-        Resource* newResource = new Resource(resourceInformation, m_Isolate);
-        sdk::Result resourceCreationResult = sdk::IResourceFactory::GetInstance()->RegisterResource(newResource);
-        m_LoadedResources.push_back(newResource);
+        Resource* resource = new Resource(resourceInformation, m_Isolate);
+        sdk::Result result = sdk::IResourceFactory::GetInstance()->RegisterResource(resource);
+
+        // TODO(YANN): debug this
+        // if (!result.WasSuccessful())
+        // {
+        //     delete resource;
+        //     return result;
+        // }
+
+        m_Resources.push_back(resource);
 
         Log().Info("Resource loaded: {} {}", resourceInformation->m_Path, resourceInformation->m_MainFile);
         return {true};
+    }
+
+    Resource* Runtime::GetResourceByContext(v8::Local<v8::Context> context) const
+    {
+        for (auto resource : m_Resources)
+        {
+            if (resource->GetContext().Get(m_Isolate) == context)
+            {
+                return resource;
+            }
+        }
+
+        return nullptr;
     }
 } // namespace js

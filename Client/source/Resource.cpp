@@ -1,6 +1,7 @@
 #include "Resource.h"
 #include "Runtime.h"
 #include "helpers.h"
+#include "events/EventManager.h"
 
 #include <filesystem>
 #include <fstream>
@@ -12,7 +13,8 @@ static v8::MaybeLocal<v8::Module> DefaultImportCallback(v8::Local<v8::Context>, 
 
 namespace js
 {
-    Resource::Resource(sdk::ResourceInformation* resourceInformation, v8::Isolate* isolate) : m_ResourceInformation(resourceInformation), m_Isolate(isolate)
+    // TODO: see with others how we should handle the lifetime of the event manager (unique_ptr, manual)
+    Resource::Resource(sdk::ResourceInformation* resourceInformation, v8::Isolate* isolate) : m_ResourceInformations(resourceInformation), m_Events(new EventManager(this)), m_Isolate(isolate)
     {
         std::filesystem::path resourcePath = resourceInformation->m_Path;
         m_mainFilePath = (resourcePath / resourceInformation->m_MainFile).string();
@@ -48,6 +50,7 @@ namespace js
     {
         v8helper::Object global = m_Context.Get(m_Isolate)->Global();
         global.SetMethod("print", Print);
+        global.SetMethod("on", EventManager::On);
     }
 
     bool Resource::RunCode(std::string_view jsFilePath)
