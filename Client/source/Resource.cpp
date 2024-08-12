@@ -1,7 +1,8 @@
 #include "Resource.h"
 #include "Runtime.h"
-#include "helpers.h"
 #include "events/EventManager.h"
+#include "subprocess.h"
+#include "helpers.h"
 
 #include <filesystem>
 #include <fstream>
@@ -14,10 +15,11 @@ static v8::MaybeLocal<v8::Module> DefaultImportCallback(v8::Local<v8::Context>, 
 namespace js
 {
     // TODO: see with others how we should handle the lifetime of the event manager (unique_ptr, manual)
-    Resource::Resource(sdk::ResourceInformation* resourceInformation, v8::Isolate* isolate) : m_ResourceInformations(resourceInformation), m_Events(new EventManager(this)), m_Isolate(isolate)
+    Resource::Resource(v8::Isolate* isolate, sdk::ResourceInformation* infos, bool isTypescript)
+        : m_Isolate(isolate), m_ResourceInformations(infos), m_IsTypescript(isTypescript), m_Events(new EventManager(this))
     {
-        std::filesystem::path resourcePath = resourceInformation->m_Path;
-        m_mainFilePath = (resourcePath / resourceInformation->m_MainFile).string();
+        std::filesystem::path resourcePath = infos->m_Path;
+        m_mainFilePath = (resourcePath / infos->m_MainFile).string();
 
         v8::Locker locker(isolate);
         v8::Isolate::Scope isolateScope(isolate);
@@ -53,17 +55,33 @@ namespace js
         global.SetMethod("on", EventManager::On);
     }
 
-    bool Resource::RunCode(std::string_view jsFilePath)
+    std::optional<std::string> Resource::ReadTsFile(std::string_view filePath)
     {
-        auto result = ReadFile(jsFilePath);
-        if (!result.has_value())
+        // TODO: get the path from the client
+        const char* commandLine[] = {"D:/.yamp/v-client/bin/runtimes/esbuild.exe", "D:/.yamp/v-client/bin/resources/js_test/main.ts", "--bundle", "--format=esm", "--platform=browser", NULL};
+        subprocess_s process;
+
+        int8_t options = subprocess_option_combined_stdout_stderr | subprocess_option_no_window;
+        int32_t result = subprocess_create(commandLine, options, &process);
+        if (result != 0)
         {
-            Log().Error("Failed to read file: {}", jsFilePath);
+            return std::nullopt;
+        }
+
+        return ReadFilePipe(subprocess_stdout(&process));
+    }
+
+    bool Resource::RunCode(std::string_view filePath)
+    {
+        std::optional<std::string> result = m_IsTypescript ? ReadTsFile(filePath) : ReadFile(filePath);
+        if (!result)
+        {
+            Log().Error("Failed to read file: {}", filePath);
             return false;
         }
 
-        v8::ScriptOrigin origin{m_Isolate, v8helper::String("<script>"), 0, 0, false, 0, v8::Local<v8::Value>(), false, false, true, v8::Local<v8::PrimitiveArray>()};
-        v8::ScriptCompiler::Source compilerSource{v8helper::String(result.value()), origin};
+        v8::ScriptOrigin origin{m_Isolate, v8helper::String(m_ResourceInformations->m_Name), 0, 0, false, 0, v8::Local<v8::Value>(), false, false, true, v8::Local<v8::PrimitiveArray>()};
+        v8::ScriptCompiler::Source compilerSource{v8helper::String(*result), origin};
         v8::MaybeLocal<v8::Module> maybeModule = v8::ScriptCompiler::CompileModule(m_Isolate, &compilerSource);
 
         v8::Local<v8::Module> mod;

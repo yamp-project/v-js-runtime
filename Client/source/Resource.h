@@ -13,7 +13,7 @@ namespace js
     class Resource : public sdk::IResourceBase
     {
     public:
-        Resource(sdk::ResourceInformation* information, v8::Isolate* isolate);
+        Resource(v8::Isolate* isolate, sdk::ResourceInformation* infos, bool isTypescript);
         virtual ~Resource();
 
         // TODO: rename with the plural form
@@ -48,6 +48,8 @@ namespace js
 
     private:
         sdk::ResourceInformation* m_ResourceInformations;
+        bool m_IsTypescript;
+
         v8::Isolate* m_Isolate;
         EventManager* m_Events;
 
@@ -56,6 +58,8 @@ namespace js
 
         void SetupContext();
         void SetupGlobals();
+
+        std::optional<std::string> ReadTsFile(std::string_view filePath);
         bool RunCode(std::string_view jsFilePath);
     };
 } // namespace js

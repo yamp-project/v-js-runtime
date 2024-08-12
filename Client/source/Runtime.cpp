@@ -46,7 +46,6 @@ namespace js
 
     Runtime::Runtime() : m_Resources(), m_Isolate(nullptr)
     {
-        //
     }
 
     Runtime::~Runtime()
@@ -111,13 +110,15 @@ namespace js
 
     sdk::Result Runtime::OnHandleResourceLoad(sdk::ResourceInformation* resourceInformation)
     {
-        if (!std::string(resourceInformation->m_MainFile).ends_with(".js"))
+        std::string mainFile = resourceInformation->m_MainFile;
+        bool isTypescript = mainFile.ends_with(".ts");
+        if (!mainFile.ends_with(".js") && !isTypescript)
         {
-            Log().Error("The resource {} has no main file valid js file extension `{}`", resourceInformation->m_Name, resourceInformation->m_MainFile);
+            Log().Error("The resource {} has no main file valid js/ts extension `{}`", resourceInformation->m_Name, resourceInformation->m_MainFile);
             return {false};
         }
 
-        Resource* resource = new Resource(resourceInformation, m_Isolate);
+        Resource* resource = new Resource(m_Isolate, resourceInformation, isTypescript);
         sdk::Result result = sdk::IResourceFactory::GetInstance()->RegisterResource(resource);
 
         // TODO(YANN): debug this
