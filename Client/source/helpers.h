@@ -3,6 +3,8 @@
 #include <string_view>
 #include <filesystem>
 #include <fstream>
+#include <sstream>
+#include <vector>
 
 #include <fw/Logger.h>
 #include <v8helper.h>
@@ -45,19 +47,29 @@ inline void Print(v8helper::FunctionContext& ctx)
         return;
     }
 
-    for (int i = 0; i < ctx.GetArgCount(); i++)
+    std::stringstream buffer;
+    for (int i = 0, argsCount = ctx.GetArgCount(); i < argsCount; i++)
     {
         v8::Local<v8::Value> val = ctx.GetArg<v8::Local<v8::Value>>(i);
-        if (val.IsEmpty())
+        if (!val.IsEmpty())
         {
-            continue;
-        }
+            buffer << v8helper::Stringify(val);
 
-        fw::Logger::Get("JS")->Info("{}", v8helper::Stringify(val));
-        if (i != ctx.GetArgCount())
-        {
-            fw::Logger::Get("JS")->Info(" ");
+            if (i != argsCount - 1)
+            {
+                buffer << " ";
+            }
         }
+    }
+
+    std::string message = buffer.str();
+    if (message.empty())
+    {
+        fw::Logger::Get("JS")->Warn("{}", "April-snow-flake: could not print");
+    }
+    else
+    {
+        fw::Logger::Get("JS")->Info("{}", message);
     }
 }
 
