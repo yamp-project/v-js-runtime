@@ -2,7 +2,6 @@
 
 #include "../Runtime.h"
 #include "../Resource.h"
-#include "events/EventManager.h"
 
 namespace js
 {
@@ -13,7 +12,7 @@ namespace js
             return;
         }
 
-        js::Resource* resource = js::Runtime::GetInstance()->GetResourceByContext(ctx.GetContext());
+        js::Resource* resource = Runtime::GetInstance()->GetResourceByContext(ctx.GetContext());
         if (resource == nullptr)
         {
             return;
@@ -53,22 +52,22 @@ namespace js
         delete m_Resource;
     }
 
-    void EventManager::Fire(std::string_view eventName)
+    void EventManager::Fire(std::string_view eventName, std::vector<v8::Local<v8::Value>>& args)
     {
-        if (m_EventHandlers.contains(eventName.data()))
+        if (!m_EventHandlers.contains(eventName.data()))
         {
-            v8::Isolate* isolate = m_Resource->GetIsolate();
-            v8::Locker locker(isolate);
-            v8::Isolate::Scope isolateScope(isolate);
-            v8::HandleScope scope(isolate);
+            return;
+        }
 
-            v8::Local<v8::Context> ctx = m_Resource->GetContext().Get(isolate);
-            // auto ctx = v8::Isolate::GetCurrent()->GetEnteredOrMicrotaskContext();
+        v8::Isolate* isolate = m_Resource->GetIsolate();
+        v8::Local<v8::Context> ctx = m_Resource->GetContext().Get(isolate);
 
-            for (auto callback : m_EventHandlers.at(eventName.data()))
-            {
-                auto _ = callback.Get(isolate)->Call(ctx, ctx->Global(), 0, nullptr);
-            }
+        for (auto callback : m_EventHandlers.at(eventName.data()))
+        {
+            auto _ = callback.Get(isolate)->Call(ctx, ctx->Global(), args.size(), args.data());
         }
     }
 } // namespace js
+
+// built-in events from the client
+// events received from another resource

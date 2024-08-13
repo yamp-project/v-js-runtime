@@ -22,7 +22,8 @@ namespace js
         EventManager(Resource* resource);
         ~EventManager();
 
-        void Fire(std::string_view eventName);
+        // Would it be better to use const std::string& instead of string_view in that case ?
+        void Fire(std::string_view eventName, std::vector<v8::Local<v8::Value>>& args);
 
         [[nodiscard]] inline Resource* GetParentResource() const
         {

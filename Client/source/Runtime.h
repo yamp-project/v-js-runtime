@@ -9,7 +9,7 @@
 #include <v8.h>
 
 // TODO: move to the sdk
-enum class PolymorphicalValueType : unsigned char
+enum class PolymorphicalValueType : uint8_t
 {
     NUMBER = 0,
     STRING = 1,
@@ -22,11 +22,11 @@ struct PolymorphicalValue
 
     union
     {
+        void* m_Pointer;
+        char* m_String;
+
         double m_Number;
         bool m_Boolean;
-
-        char* m_String;
-        void* m_Pointer;
 
         struct
         {
@@ -38,21 +38,7 @@ struct PolymorphicalValue
     template <typename T>
     inline T As() const
     {
-        if constexpr (std::is_same<T, double>::value)
-        {
-            return m_Value.m_Number;
-        }
-        else if constexpr (std::is_same<T, bool>::value)
-        {
-            return m_Value.m_Boolean;
-        }
-        else if constexpr (std::is_same<T, const char*>::value)
-        {
-            return m_Value.m_String;
-        }
-
-        throw std::runtime_error("Type mismatch");
-        // return std::move(*reinterpret_cast<T*>(&m_Value.m_Number));
+        return std::move(*(T*)(&m_Value.m_Pointer));
     }
 };
 

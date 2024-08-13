@@ -8,40 +8,48 @@
 #include <v-sdk/Result.hpp>
 #include <Windows.h>
 
+#define V8_SCOPE(isolate)                     \
+    v8::Locker locker(isolate);               \
+    v8::Isolate::Scope isolateScope(isolate); \
+    v8::HandleScope scope(isolate)
+
 namespace js
 {
     void Runtime::OnEvent(const char* eventName, PolymorphicalValue* args[], size_t size)
     {
-        auto logger = fw::Logger::Get("rt-debug");
-        logger->Info("RECEIVED EVENT {} with {} arguments", eventName, size);
+        Runtime* runtime = Runtime::GetInstance();
+        V8_SCOPE(runtime->GetIsolate());
 
-        for (auto resource : js::Runtime::GetInstance()->GetResources())
+        std::vector<v8::Local<v8::Value>> v8Args;
+        v8Args.reserve(size);
+
+        for (size_t i = 0; i < size; ++i)
         {
-            resource->GetEventManager()->Fire(eventName);
+            PolymorphicalValue* arg = args[i];
+            switch (arg->m_Type)
+            {
+            case PolymorphicalValueType::NUMBER:
+                v8Args.push_back(v8helper::JSValue(arg->As<double>()));
+                break;
+
+            case PolymorphicalValueType::BOOLEAN:
+                v8Args.push_back(v8helper::JSValue(arg->As<bool>()));
+                break;
+
+            case PolymorphicalValueType::STRING:
+                v8Args.push_back(v8helper::String(arg->As<char*>()));
+                break;
+
+            default:
+                runtime->Log().Warn("unsupported PolymorphicalValueType {}", (uint8_t)arg->m_Type);
+                break;
+            }
         }
 
-        // for (size_t i = 0; i < size; ++i)
-        // {
-        //     PolymorphicalValue* arg = args[i];
-
-        //     switch (arg->m_Type)
-        //     {
-        //     case PolymorphicalValueType::NUMBER:
-        //         logger->Info("argument {} is of type number and its value is: {}", i, arg->As<double>());
-        //         break;
-
-        //     case PolymorphicalValueType::BOOLEAN:
-        //         logger->Info("argument {} is of type boolean and its value is: {}", i, arg->As<bool>());
-        //         break;
-
-        //     case PolymorphicalValueType::STRING:
-        //         logger->Info("argument {} is of type string and its value is: {}", i, arg->As<const char*>());
-        //         break;
-
-        //     default:
-        //         break;
-        //     }
-        // }
+        for (Resource* resource : runtime->GetResources())
+        {
+            resource->GetEventManager()->Fire(eventName, v8Args);
+        }
     }
 
     Runtime::Runtime() : m_Resources(), m_Isolate(nullptr)
