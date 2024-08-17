@@ -1,5 +1,6 @@
 #include "Runtime.h"
 #include "Resource.h"
+#include "fw/Logger.h"
 #include "helpers.h"
 #include "events/EventManager.h"
 
@@ -15,7 +16,7 @@
 
 namespace js
 {
-    void Runtime::OnEvent(const char* eventName, PolymorphicalValue* args[], size_t size)
+    void Runtime::OnEvent(EventType eventType, const char* eventName, PolymorphicalValue* args[], size_t size)
     {
         Runtime* runtime = Runtime::GetInstance();
         V8_SCOPE(runtime->GetIsolate());
@@ -48,7 +49,7 @@ namespace js
 
         for (Resource* resource : runtime->GetResources())
         {
-            resource->GetEventManager()->Fire(eventName, v8Args);
+            resource->GetEventManager()->DispatchEvent(eventType, eventName, v8Args);
         }
     }
 
@@ -79,6 +80,14 @@ namespace js
 
         m_Isolate->SetMicrotasksPolicy(v8::MicrotasksPolicy::kExplicit);
         m_Isolate->SetCaptureStackTraceForUncaughtExceptions(true, 5);
+
+        m_Isolate->SetFatalErrorHandler(OnFatalError);
+        m_Isolate->SetOOMErrorHandler(OnHeapOOM);
+        m_Isolate->AddNearHeapLimitCallback(OnNearHeapLimit, nullptr);
+        m_Isolate->SetPromiseRejectCallback(OnPromiseRejected);
+        // isolate->SetHostImportModuleDynamicallyCallback(ImportModuleDynamically);
+        // isolate->SetHostInitializeImportMetaObjectCallback(InitializeImportMetaObject);
+        // isolate->AddMessageListener(MessageListener);
     }
 
     void Runtime::OnStart()
@@ -88,9 +97,9 @@ namespace js
         Log().Info("Succesfully started");
 
         // TODO: move to the sdk
-        HMODULE clientModule = GetModuleHandleA("yamp_client.dll");
-        auto RegisterOnEventCallback = reinterpret_cast<void (*)(void(const char*, PolymorphicalValue**, size_t))>(GetProcAddress(clientModule, "OnEvent"));
-        RegisterOnEventCallback(Runtime::OnEvent);
+        // HMODULE clientModule = GetModuleHandleA("yamp_client.dll");
+        // auto RegisterOnEventCallback = reinterpret_cast<void (*)(void(EventType, const char*, PolymorphicalValue**, size_t))>(GetProcAddress(clientModule, "OnEvent"));
+        // RegisterOnEventCallback(Runtime::OnEvent);
     }
 
     void Runtime::OnStop()
@@ -153,5 +162,39 @@ namespace js
         }
 
         return nullptr;
+    }
+
+    size_t Runtime::OnNearHeapLimit(void*, size_t current, size_t initial)
+    {
+        Runtime::GetInstance()->Log().Warn("The remaining V8 heap space is approaching critical levels. Increasing heap limit...");
+
+        // Increase the heap limit by 100MB if the heap limit has not exceeded 4GB
+        uint64_t currentLimitMb = (current / 1024) / 1024;
+        return currentLimitMb < 4096 ? current + (100 * 1024 * 1024) : current;
+    }
+
+    void Runtime::OnHeapOOM(const char* location, bool isHeap)
+    {
+        if (isHeap)
+        {
+            Runtime::GetInstance()->Log().Error("V8 heap out of memory! {}", location);
+        }
+    }
+
+    void Runtime::OnFatalError(const char* location, const char* message)
+    {
+        Runtime::GetInstance()->Log().Error("V8 fatal error! {} {}", location, message);
+    }
+
+    void Runtime::OnPromiseRejected(v8::PromiseRejectMessage message)
+    {
+        v8::Isolate* isolate = v8::Isolate::GetCurrent();
+        v8::Local<v8::Context> ctx = isolate->GetEnteredOrMicrotaskContext();
+
+        Runtime* runtime = Runtime::GetInstance();
+        if (Resource* resource = runtime->GetResourceByContext(ctx))
+        {
+            resource->OnPromiseRejected(message);
+        }
     }
 } // namespace js

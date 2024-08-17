@@ -1,20 +1,45 @@
 #pragma once
 
+#include "exceptionhandler.h"
+#include "modulehandler.h"
+#include <stdint.h>
 #include <v-sdk/Resource.hpp>
 #include <fw/Logger.h>
 #include <v8helper.h>
 #include <v8.h>
+#include <vector>
 
 namespace js
 {
     namespace sdk = yamp::sdk;
 
     class EventManager;
-    class Resource : public sdk::IResourceBase
+    class Resource : public sdk::IResourceBase, public v8helper::IModuleHandler, public v8helper::IExceptionHandler
     {
     public:
         Resource(v8::Isolate* isolate, sdk::ResourceInformation* infos, bool isTypescript);
         virtual ~Resource();
+
+        std::string ResolvePath(v8::Local<v8::Context> context, const std::string& path, const std::string& referrer) override
+        {
+            Log().Info("path {} referrer {}", path, referrer);
+            return "";
+        }
+
+        std::vector<uint8_t> ReadFile(v8::Local<v8::Context> context, const std::string& path) override
+        {
+            return std::vector<uint8_t>();
+        }
+
+        void HandleEvent(ExceptionEvent event, std::string_view rejectionMessage) override
+        {
+            Log().Warn("HandleEvent {}", rejectionMessage);
+        }
+
+        void HandleRejection(PromiseRejection& rejection) override
+        {
+            Log().Warn("HandleRejection {}", rejection.GetRejectionMessage());
+        }
 
         // TODO: rename with the plural form
         [[nodiscard]] inline sdk::ResourceInformation* GetResourceInformation() override

@@ -8,6 +8,8 @@
 #include <vector>
 #include <v8.h>
 
+enum EventType : uint8_t;
+
 // TODO: move to the sdk
 enum class PolymorphicalValueType : uint8_t
 {
@@ -50,7 +52,11 @@ namespace js
     class Runtime : public fw::utils::InstanceBase, public sdk::IRuntimeBase
     {
     public:
-        static void OnEvent(const char* eventName, PolymorphicalValue* args[], size_t size);
+        static void OnEvent(EventType eventType, const char* eventName, PolymorphicalValue* args[], size_t size);
+        static size_t OnNearHeapLimit(void*, size_t current, size_t initial);
+        static void OnHeapOOM(const char* location, bool isHeap);
+        static void OnFatalError(const char* location, const char* message);
+        static void OnPromiseRejected(v8::PromiseRejectMessage message);
 
         Runtime();
         ~Runtime();

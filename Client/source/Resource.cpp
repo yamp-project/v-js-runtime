@@ -1,8 +1,10 @@
 #include "Resource.h"
 #include "Runtime.h"
 #include "events/EventManager.h"
+#include "module.h"
 #include "subprocess.h"
 #include "helpers.h"
+#include "v8-context.h"
 
 #include <filesystem>
 #include <fstream>
@@ -12,21 +14,40 @@ static v8::MaybeLocal<v8::Module> DefaultImportCallback(v8::Local<v8::Context>, 
     return v8::MaybeLocal<v8::Module>();
 }
 
+static void Temp(const v8::FunctionCallbackInfo<v8::Value>& _info)
+{
+    fw::Logger::Get("TEMP")->Warn(":D");
+}
+
+// clang-format off
+static v8helper::Module clientModule("@yamp/client", [](v8helper::ModuleTemplate& module)
+{
+    module.StaticProperty("isClient", true);
+
+    // module.StaticFunction("test", v8::FunctionTemplate::New(module.GetIsolate(), Temp, v8::External::New(module.GetIsolate(), nullptr)));
+}, nullptr, v8helper::Module::Option::EXPORT_AS_DEFAULT);
+// clang-format on
+
 namespace js
 {
     // TODO: see with others how we should handle the lifetime of the event manager (unique_ptr, manual)
     Resource::Resource(v8::Isolate* isolate, sdk::ResourceInformation* infos, bool isTypescript)
         : m_Isolate(isolate), m_ResourceInformations(infos), m_IsTypescript(isTypescript), m_Events(new EventManager(this))
     {
+        Log().Info("???");
+
         std::filesystem::path resourcePath = infos->m_Path;
         m_mainFilePath = (resourcePath / infos->m_MainFile).string();
+        Log().Info("path -> {}", m_mainFilePath);
 
         v8::Locker locker(isolate);
         v8::Isolate::Scope isolateScope(isolate);
         v8::HandleScope handleScope(isolate);
         SetupContext();
 
-        v8::Context::Scope scope(m_Context.Get(isolate));
+        v8::Local<v8::Context> context = m_Context.Get(isolate);
+        v8::Context::Scope scope(context);
+
         SetupGlobals();
     }
 
@@ -43,6 +64,7 @@ namespace js
 
         auto microtaskQueue = v8::MicrotaskQueue::New(m_Isolate, v8::MicrotasksPolicy::kExplicit);
         v8::Local<v8::Context> _context = v8::Context::New(m_Isolate, nullptr, v8::Local<v8::ObjectTemplate>(), v8::Local<v8::Value>(), nullptr, microtaskQueue.get());
+        _context->SetAlignedPointerInEmbedderData(V8HELPER_MODULEHANDLER_EMBEDDER_FIELD, this);
         m_Context.Reset(m_Isolate, _context);
 
         Assert(!m_Context.IsEmpty(), "Failed to create context");
@@ -52,13 +74,14 @@ namespace js
     {
         v8helper::Object global = m_Context.Get(m_Isolate)->Global();
         global.SetMethod("print", Print);
-        global.SetMethod("on", EventManager::On);
+        global.SetMethod("onCore", EventManager::OnCore);
     }
 
     std::optional<std::string> Resource::ReadTsFile(std::string_view filePath)
     {
         // TODO: get the path from the client
-        const char* commandLine[] = {"D:/.yamp/v-client/bin/runtimes/esbuild.exe", "D:/.yamp/v-client/bin/resources/js_test/main.ts", "--bundle", "--format=esm", "--platform=browser", NULL};
+        const char* commandLine[] = {
+            "D:/.yamp/v-client/bin/runtimes/esbuild.exe", "D:/.yamp/v-client/bin/resources/js_test/main.ts", "--bundle", "--format=esm", "--platform=browser", "--external:@yamp/client", NULL};
         subprocess_s process;
 
         int8_t options = subprocess_option_combined_stdout_stderr | subprocess_option_no_window;
@@ -73,7 +96,7 @@ namespace js
 
     bool Resource::RunCode(std::string_view filePath)
     {
-        std::optional<std::string> result = m_IsTypescript ? ReadTsFile(filePath) : ReadFile(filePath);
+        std::optional<std::string> result = m_IsTypescript ? ReadTsFile(filePath) : ::ReadFile(filePath);
         if (!result)
         {
             Log().Error("Failed to read file: {}", filePath);

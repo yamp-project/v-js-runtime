@@ -5,15 +5,10 @@
 
 namespace js
 {
-    void EventManager::On(v8helper::FunctionContext& ctx)
+    void EventManager::OnCore(v8helper::FunctionContext& ctx)
     {
-        if (!ctx.CheckArgCount(2))
-        {
-            return;
-        }
-
         js::Resource* resource = Runtime::GetInstance()->GetResourceByContext(ctx.GetContext());
-        if (resource == nullptr)
+        if (!ctx.CheckArgCount(2) || resource == nullptr)
         {
             return;
         }
@@ -21,7 +16,7 @@ namespace js
         v8::Isolate* isolate = ctx.GetIsolate();
         v8::HandleScope scope(isolate);
 
-        auto eventName = ctx.GetArg<std::string>(0);
+        std::string eventName = ctx.GetArg<std::string>(0);
         v8::Local<v8::Value> callbackValue;
         if (!ctx.GetArg(1, callbackValue, v8helper::Type::FUNCTION))
         {
@@ -29,45 +24,50 @@ namespace js
         }
 
         auto callback = v8helper::Persistent<v8::Function>(isolate, v8::Local<v8::Function>::Cast(callbackValue));
-        EventManager* events = resource->GetEventManager();
-
-        if (!events->m_EventHandlers.contains(eventName))
-        {
-            auto handlers = std::vector<v8helper::Persistent<v8::Function>>{callback};
-            events->m_EventHandlers.emplace(eventName, handlers);
-        }
-        else
-        {
-            events->m_EventHandlers.at(eventName).push_back(callback);
-        }
+        resource->GetEventManager()->RegisterEvent(EventType::CORE, eventName, callback);
     }
 
-    EventManager::EventManager(Resource* resource) : m_Resource(resource)
+    EventManager::EventManager(Resource* resource) : m_ParentResource(resource), m_CoreEventHandlers(), m_LocalEventHandlers(), m_RemoteEventHandlers()
     {
         //
     }
 
     EventManager::~EventManager()
     {
-        delete m_Resource;
+        delete m_ParentResource;
     }
 
-    void EventManager::Fire(std::string_view eventName, std::vector<v8::Local<v8::Value>>& args)
+    void EventManager::RegisterEvent(EventType eventType, std::string_view eventName, v8helper::Persistent<v8::Function> callback)
     {
-        if (!m_EventHandlers.contains(eventName.data()))
+        auto map = GetEventHandlersFromType(eventType);
+        if (map == nullptr)
         {
             return;
         }
 
-        v8::Isolate* isolate = m_Resource->GetIsolate();
-        v8::Local<v8::Context> ctx = m_Resource->GetContext().Get(isolate);
-
-        for (auto callback : m_EventHandlers.at(eventName.data()))
+        if (!map->contains(eventName.data()))
         {
-            auto _ = callback.Get(isolate)->Call(ctx, ctx->Global(), args.size(), args.data());
+            auto handlers = std::vector<v8helper::Persistent<v8::Function>>{callback};
+            map->emplace(eventName, handlers);
+        }
+        else
+        {
+            map->at(eventName.data()).push_back(callback);
+        }
+    }
+
+    void EventManager::DispatchEvent(EventType eventType, std::string_view eventName, std::vector<v8::Local<v8::Value>>& args)
+    {
+        auto map = GetEventHandlersFromType(eventType);
+        if (map != nullptr && map->contains(eventName.data()))
+        {
+            v8::Isolate* isolate = m_ParentResource->GetIsolate();
+            v8::Local<v8::Context> context = m_ParentResource->GetContext().Get(isolate);
+
+            for (auto callback : map->at(eventName.data()))
+            {
+                auto _ = callback.Get(isolate)->Call(context, context->Global(), args.size(), args.data());
+            }
         }
     }
 } // namespace js
-
-// built-in events from the client
-// events received from another resource
