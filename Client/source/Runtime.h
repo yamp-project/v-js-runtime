@@ -1,48 +1,14 @@
 #pragma once
 
 #include <fw/utils/InstanceBase.h>
+#include <unordered_map>
 #include <v-sdk/Runtime.hpp>
+#include <v-sdk/Events.hpp>
 #include <fw/Logger.h>
 #include <functional>
 #include <v8helper.h>
 #include <vector>
 #include <v8.h>
-
-enum EventType : uint8_t;
-
-// TODO: move to the sdk
-enum class PolymorphicalValueType : uint8_t
-{
-    NUMBER = 0,
-    STRING = 1,
-    BOOLEAN = 2
-};
-
-struct PolymorphicalValue
-{
-    PolymorphicalValueType m_Type;
-
-    union
-    {
-        void* m_Pointer;
-        char* m_String;
-
-        double m_Number;
-        bool m_Boolean;
-
-        struct
-        {
-            void* m_Buffer;
-            uint32_t m_Length;
-        }* m_Array;
-    } m_Value;
-
-    template <typename T>
-    inline T As() const
-    {
-        return std::move(*(T*)(&m_Value.m_Pointer));
-    }
-};
 
 namespace js
 {
@@ -52,7 +18,12 @@ namespace js
     class Runtime : public fw::utils::InstanceBase, public sdk::IRuntimeBase
     {
     public:
-        static void OnEvent(EventType eventType, const char* eventName, PolymorphicalValue* args[], size_t size);
+        [[nodiscard]] inline static fw::Logger& Log()
+        {
+            return *fw::Logger::Get("JS::Runtime");
+        }
+
+        static void OnEvent(yamp::sdk::AnyBuiltinEvent* ev);
         static size_t OnNearHeapLimit(void*, size_t current, size_t initial);
         static void OnHeapOOM(const char* location, bool isHeap);
         static void OnFatalError(const char* location, const char* message);
@@ -77,27 +48,26 @@ namespace js
 
         sdk::Result OnHandleResourceLoad(sdk::ResourceInformation* Information) override;
 
-        [[nodiscard]] inline v8::Isolate* GetIsolate() const
-        {
-            return m_Isolate;
-        }
-
+        [[nodiscard]] Resource* GetResourceByContext(v8::Local<v8::Context> context) const;
         [[nodiscard]] inline std::vector<Resource*>& GetResources()
         {
             return m_Resources;
         }
 
-        [[nodiscard]] Resource* GetResourceByContext(v8::Local<v8::Context> context) const;
-        [[nodiscard]] inline fw::Logger& Log()
+        [[nodiscard]] inline v8::Isolate* GetIsolate() const
         {
-            return *fw::Logger::Get("JS::Runtime");
+            return m_Isolate;
         }
 
         IMPLEMENT_INSTANCE_FUNCTION(Runtime);
 
+        // temp
+        typedef void (*getLocalPlayerPos)();
+        getLocalPlayerPos m_GetLocalPlayerPos;
+
     private:
-        std::vector<Resource*> m_Resources;
         std::unique_ptr<v8::Platform> m_Platform;
+        std::vector<Resource*> m_Resources;
         v8::Isolate* m_Isolate;
 
         void SetupIsolate();

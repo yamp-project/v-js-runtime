@@ -1,8 +1,10 @@
 #include "Runtime.h"
 #include "Resource.h"
 #include "fw/Logger.h"
-#include "helpers.h"
+#include "helpers/misc.h"
 #include "events/EventManager.h"
+#include "v-sdk/AnyValue.hpp"
+#include "v-sdk/Events.hpp"
 
 #include <libplatform/libplatform.h>
 #include <v-sdk/factories/ResourceFactory.hpp>
@@ -16,44 +18,45 @@
 
 namespace js
 {
-    void Runtime::OnEvent(EventType eventType, const char* eventName, PolymorphicalValue* args[], size_t size)
+    void Runtime::OnEvent(yamp::sdk::AnyBuiltinEvent* ev)
     {
         Runtime* runtime = Runtime::GetInstance();
         V8_SCOPE(runtime->GetIsolate());
 
         std::vector<v8::Local<v8::Value>> v8Args;
-        v8Args.reserve(size);
+        v8Args.reserve(ev->size);
 
-        for (size_t i = 0; i < size; ++i)
+        for (size_t i = 0; i < ev->size; ++i)
         {
-            PolymorphicalValue* arg = args[i];
-            switch (arg->m_Type)
+            yamp::sdk::AnyValue arg = ev->args[i];
+
+            switch (arg.m_Type)
             {
-            case PolymorphicalValueType::NUMBER:
-                v8Args.push_back(v8helper::JSValue(arg->As<double>()));
+            case yamp::sdk::AnyValue::Type::DOUBLE:
+                v8Args.push_back(v8helper::JSValue(arg.As<double>()));
                 break;
 
-            case PolymorphicalValueType::BOOLEAN:
-                v8Args.push_back(v8helper::JSValue(arg->As<bool>()));
+            case yamp::sdk::AnyValue::Type::BOOL:
+                v8Args.push_back(v8helper::JSValue(arg.As<bool>()));
                 break;
 
-            case PolymorphicalValueType::STRING:
-                v8Args.push_back(v8helper::String(arg->As<char*>()));
+            case yamp::sdk::AnyValue::Type::STRING:
+                v8Args.push_back(v8helper::String(arg.As<char*>()));
                 break;
 
             default:
-                runtime->Log().Warn("unsupported PolymorphicalValueType {}", (uint8_t)arg->m_Type);
+                runtime->Log().Warn("unsupported AnyValue::Type {}", (uint8_t)arg.m_Type);
                 break;
             }
         }
 
         for (Resource* resource : runtime->GetResources())
         {
-            resource->GetEventManager()->DispatchEvent(eventType, eventName, v8Args);
+            resource->GetEventManager()->DispatchEvent(EventType::CORE, ev->eventName, v8Args);
         }
     }
 
-    Runtime::Runtime() : m_Resources(), m_Isolate(nullptr)
+    Runtime::Runtime() : m_Platform(v8::platform::NewDefaultPlatform()), m_Resources(), m_Isolate(nullptr), m_GetLocalPlayerPos(nullptr)
     {
     }
 
@@ -66,7 +69,6 @@ namespace js
     {
         v8::V8::SetFlagsFromString("--harmony-import-assertions --short-builtin-calls --no-lazy --no-flush-bytecode");
 
-        m_Platform = v8::platform::NewDefaultPlatform();
         v8::V8::InitializePlatform(m_Platform.get());
         v8::V8::InitializeICU("D:/.yamp/v-client/bin/runtimes/icudtl_v8.dat");
         v8::V8::Initialize();
@@ -76,7 +78,7 @@ namespace js
         createParams.allow_atomics_wait = false;
 
         m_Isolate = v8::Isolate::New(createParams);
-        Assert(m_Isolate != nullptr, "Failed to create isolate");
+        misc::Assert(m_Isolate != nullptr, "Failed to create isolate");
 
         m_Isolate->SetMicrotasksPolicy(v8::MicrotasksPolicy::kExplicit);
         m_Isolate->SetCaptureStackTraceForUncaughtExceptions(true, 5);
@@ -97,9 +99,11 @@ namespace js
         Log().Info("Succesfully started");
 
         // TODO: move to the sdk
-        // HMODULE clientModule = GetModuleHandleA("yamp_client.dll");
-        // auto RegisterOnEventCallback = reinterpret_cast<void (*)(void(EventType, const char*, PolymorphicalValue**, size_t))>(GetProcAddress(clientModule, "OnEvent"));
-        // RegisterOnEventCallback(Runtime::OnEvent);
+        HMODULE clientModule = GetModuleHandleA("yamp_client.dll");
+        auto RegisterOnEventCallback = reinterpret_cast<void (*)(void(yamp::sdk::AnyBuiltinEvent*))>(GetProcAddress(clientModule, "OnEvent"));
+        RegisterOnEventCallback(Runtime::OnEvent);
+
+        m_GetLocalPlayerPos = reinterpret_cast<void (*)()>(GetProcAddress(clientModule, "GetLocalPlayerPos"));
     }
 
     void Runtime::OnStop()
