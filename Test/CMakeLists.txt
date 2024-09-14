@@ -30,7 +30,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/so
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../Client/source)
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../Vendors/temp)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC YampFramework yamp::sdk v8helper::v8helper)
+target_link_libraries(${PROJECT_NAME} PUBLIC framework::framework yamp::sdk v8helper::v8helper)
 target_link_libraries(${PROJECT_NAME} PUBLIC shlwapi.lib winmm.lib DbgHelp.lib advapi32.lib)
 
 target_link_directories(${PROJECT_NAME} PUBLIC ../Vendors/temp)

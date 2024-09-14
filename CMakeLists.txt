@@ -11,6 +11,6 @@ else()
     message(FATAL_ERROR "Unsupported architecture")
 endif()
 
-# add_subdirectory("Client")
-add_subdirectory("Test")
+add_subdirectory("Client")
+# add_subdirectory("Test")
 add_subdirectory("Vendors")

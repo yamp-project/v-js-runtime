@@ -14,7 +14,7 @@ file(GLOB_RECURSE PROJECT_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/source/*.h ${
 add_library(${PROJECT_NAME} SHARED ${PROJECT_SOURCE_FILES})
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/source)
-target_link_libraries(${PROJECT_NAME} PUBLIC YampFramework yamp::sdk v8helper::v8helper)
+target_link_libraries(${PROJECT_NAME} PUBLIC framework::framework yamp::sdk v8helper::v8helper)
 target_link_libraries(${PROJECT_NAME} PUBLIC shlwapi.lib winmm.lib DbgHelp.lib advapi32.lib)
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
