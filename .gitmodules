@@ -1,9 +1,9 @@
+[submodule "Vendors/v8helper"]
+	path = Vendors/v8helper
+	url = git@github.com:yamp-project/v8helper.git
 [submodule "Vendors/v-sdk"]
 	path = Vendors/v-sdk
 	url = git@github.com:yamp-project/v-sdk.git
 [submodule "Vendors/framework"]
 	path = Vendors/framework
 	url = git@github.com:yamp-project/framework.git
-[submodule "Vendors/v8helper"]
-	path = Vendors/v8helper
-	url = git@github.com:yamp-project/v8helper.git
