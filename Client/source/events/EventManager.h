@@ -2,7 +2,7 @@
 
 #include "common.h"
 #include "events/EventManager.h"
-#include "fw/Logger.h"
+#include <fw/Logger.h>
 
 #include <unordered_map>
 #include <optional>
@@ -16,8 +16,8 @@
 enum EventType : uint8_t
 {
     CORE = 0,
-    LOCAL = 1,
-    REMOTE = 2
+    LOCAL,
+    REMOTE
 };
 
 namespace js

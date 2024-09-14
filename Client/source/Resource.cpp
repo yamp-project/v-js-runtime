@@ -1,22 +1,26 @@
 #include "Resource.h"
 #include "Runtime.h"
+#include "callcontext.h"
 #include "events/EventManager.h"
 #include "module.h"
 #include "subprocess.h"
-#include "helpers.h"
+#include "helpers/misc.h"
+#include "helpers/io.h"
 #include "v8-context.h"
+#include "v8-persistent-handle.h"
+#include "v8-template.h"
+#include "values.h"
 
 #include <filesystem>
 #include <fstream>
 
+#include <stdint.h>
+#include <v-sdk/factories/NativeFactory.hpp>
+#include "natives/NativesWrapper.h"
+
 static v8::MaybeLocal<v8::Module> DefaultImportCallback(v8::Local<v8::Context>, v8::Local<v8::String>, v8::Local<v8::FixedArray>, v8::Local<v8::Module>)
 {
     return v8::MaybeLocal<v8::Module>();
-}
-
-static void Temp(const v8::FunctionCallbackInfo<v8::Value>& _info)
-{
-    fw::Logger::Get("TEMP")->Warn(":D");
 }
 
 // clang-format off
@@ -48,6 +52,7 @@ namespace js
         v8::Local<v8::Context> context = m_Context.Get(isolate);
         v8::Context::Scope scope(context);
 
+        RegisterNatives();
         SetupGlobals();
     }
 
@@ -67,13 +72,13 @@ namespace js
         _context->SetAlignedPointerInEmbedderData(V8HELPER_MODULEHANDLER_EMBEDDER_FIELD, this);
         m_Context.Reset(m_Isolate, _context);
 
-        Assert(!m_Context.IsEmpty(), "Failed to create context");
+        misc::Assert(!m_Context.IsEmpty(), "Failed to create context");
     }
 
     void Resource::SetupGlobals()
     {
         v8helper::Object global = m_Context.Get(m_Isolate)->Global();
-        global.SetMethod("print", Print);
+        global.SetMethod("print", io::Print);
         global.SetMethod("onCore", EventManager::OnCore);
     }
 
@@ -91,12 +96,28 @@ namespace js
             return std::nullopt;
         }
 
-        return ReadFilePipe(subprocess_stdout(&process));
+        return io::ReadFilePipe(subprocess_stdout(&process));
+    }
+
+    void Resource::RegisterNatives()
+    {
+        sdk::INativeReflectionFactory* nativeReflectionFactory = sdk::INativeReflectionFactory::GetInstance();
+        v8helper::Object global = m_Context.Get(m_Isolate)->Global();
+
+        for (auto& native : nativeReflectionFactory->GetListOfNatives())
+        {
+            sdk::NativeInformation* nativeInformation = nativeReflectionFactory->GetNativeInformation(native);
+            if (nativeInformation)
+            {
+                auto callback = v8::FunctionTemplate::New(m_Isolate, NativesWrapper::InvokeNative, v8::External::New(m_Isolate, nativeInformation));
+                global.SetMethod(misc::ToCamelCase(nativeInformation->m_Name), callback);
+            }
+        }
     }
 
     bool Resource::RunCode(std::string_view filePath)
     {
-        std::optional<std::string> result = m_IsTypescript ? ReadTsFile(filePath) : ::ReadFile(filePath);
+        std::optional<std::string> result = m_IsTypescript ? ReadTsFile(filePath) : io::ReadFile(filePath);
         if (!result)
         {
             Log().Error("Failed to read file: {}", filePath);

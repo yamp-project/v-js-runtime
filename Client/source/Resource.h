@@ -86,5 +86,6 @@ namespace js
 
         std::optional<std::string> ReadTsFile(std::string_view filePath);
         bool RunCode(std::string_view jsFilePath);
+        void RegisterNatives();
     };
 } // namespace js

@@ -1,6 +1,5 @@
 #include "Runtime.h"
 
-#include <stdint.h>
 #include <v-sdk/factories/RuntimeFactory.hpp>
 #include <spdlog/spdlog.h>
 #include <fw/Logger.h>
