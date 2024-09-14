@@ -1,8 +1,6 @@
 #include "NativesWrapper.h"
 #include "Runtime.h"
 
-#include <v-sdk/factories/NativeFactory.hpp>
-
 #define IMPLEMENT_PUSH_ARGUMENT(MappingIndex, Type)                                      \
     m_PushArgumentMapping[MappingIndex] = [](Ctx& ctx, Invoker* invoker, uint32_t index) \
     {                                                                                    \

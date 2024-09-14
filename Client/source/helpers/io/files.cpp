@@ -1,9 +1,5 @@
 #include "files.h"
 
-#include <filesystem>
-#include <fstream>
-#include <vector>
-
 namespace io
 {
     std::optional<std::string> ReadFile(std::string_view path)

@@ -1,14 +1,13 @@
 #pragma once
 
+#include "stdafx.h"
+
 #include <fw/utils/InstanceBase.h>
-#include <unordered_map>
+#include <fw/Logger.h>
+
 #include <v-sdk/Runtime.hpp>
 #include <v-sdk/Events.hpp>
-#include <fw/Logger.h>
-#include <functional>
 #include <v8helper.h>
-#include <vector>
-#include <v8.h>
 
 namespace js
 {

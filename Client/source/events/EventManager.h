@@ -1,17 +1,9 @@
 #pragma once
 
-#include "common.h"
-#include "events/EventManager.h"
+#include "stdafx.h"
+
 #include <fw/Logger.h>
-
-#include <unordered_map>
-#include <optional>
-#include <values.h>
-#include <vector>
-#include <string>
-
 #include <v8helper.h>
-#include <v8.h>
 
 enum EventType : uint8_t
 {

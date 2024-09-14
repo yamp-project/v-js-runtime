@@ -1,22 +1,10 @@
 #pragma once
 
-#include "callcontext.h"
 #include "fw/utils/InstanceBase.h"
+#include "stdafx.h"
 
 #include <v-sdk/factories/NativeFactory.hpp>
 #include <v8helper.h>
-
-#if defined(__GNUC__) || defined(__clang__)
-#ifndef __MINGW32__
-#define STRONG_INLINE __attribute__((always_inline)) inline
-#else
-#define STRONG_INLINE inline
-#endif
-#elif defined(_MSC_VER)
-#define STRONG_INLINE __pragma(warning(suppress : 4714)) inline __forceinline
-#else
-#define STRONG_INLINE inline
-#endif
 
 using namespace yamp;
 

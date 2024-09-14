@@ -1,7 +1,7 @@
 #include "EventManager.h"
 
-#include "../Runtime.h"
-#include "../Resource.h"
+#include "Resource.h"
+#include "Runtime.h"
 
 namespace js
 {

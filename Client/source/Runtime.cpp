@@ -1,14 +1,13 @@
 #include "Runtime.h"
-#include "Resource.h"
-#include "fw/Logger.h"
-#include "helpers/misc.h"
-#include "events/EventManager.h"
-#include "v-sdk/AnyValue.hpp"
-#include "v-sdk/Events.hpp"
 
-#include <libplatform/libplatform.h>
+#include "events/EventManager.h"
+#include "helpers/misc.h"
+#include "Resource.h"
+
 #include <v-sdk/factories/ResourceFactory.hpp>
-#include <v-sdk/Result.hpp>
+#include <fw/Logger.h>
+
+// TODO: remove
 #include <Windows.h>
 
 #define V8_SCOPE(isolate)                     \

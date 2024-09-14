@@ -1,13 +1,10 @@
 #pragma once
 
-#include "exceptionhandler.h"
-#include "modulehandler.h"
-#include <stdint.h>
+#include "stdafx.h"
+
 #include <v-sdk/Resource.hpp>
 #include <fw/Logger.h>
 #include <v8helper.h>
-#include <v8.h>
-#include <vector>
 
 namespace js
 {
