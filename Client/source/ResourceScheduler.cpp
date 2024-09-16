@@ -14,7 +14,6 @@ namespace js
     {
         auto now = std::chrono::steady_clock::now();
         v8::Isolate* isolate = m_ParentResource->GetIsolate();
-        V8_SCOPE(isolate);
 
         auto context = m_ParentResource->GetContext().Get(isolate);
         auto hint = m_Timers.end();

@@ -57,8 +57,8 @@ namespace js
         v8helper::Module::Initialize(m_Isolate);
         v8helper::Class::Initialize(m_Isolate);
 
-        auto microtaskQueue = v8::MicrotaskQueue::New(m_Isolate, v8::MicrotasksPolicy::kExplicit);
-        v8::Local<v8::Context> _context = v8::Context::New(m_Isolate, nullptr, v8::Local<v8::ObjectTemplate>(), v8::Local<v8::Value>(), nullptr, microtaskQueue.get());
+        m_MicrotaskQueue = v8::MicrotaskQueue::New(m_Isolate, v8::MicrotasksPolicy::kExplicit);
+        v8::Local<v8::Context> _context = v8::Context::New(m_Isolate, nullptr, v8::Local<v8::ObjectTemplate>(), v8::Local<v8::Value>(), nullptr, m_MicrotaskQueue.get());
         _context->SetAlignedPointerInEmbedderData(V8HELPER_MODULEHANDLER_EMBEDDER_FIELD, this);
         m_Context.Reset(m_Isolate, _context);
 
@@ -161,9 +161,7 @@ namespace js
 
     sdk::Result Resource::OnStart()
     {
-        v8::Locker locker(m_Isolate);
-        v8::Isolate::Scope isolateScope(m_Isolate);
-        v8::HandleScope handleScope(m_Isolate);
+        V8_SCOPE(m_Isolate);
         v8::Context::Scope ctxScope(m_Context.Get(m_Isolate));
 
         bool status = RunCode(m_mainFilePath);
@@ -178,7 +176,11 @@ namespace js
 
     sdk::Result Resource::OnTick()
     {
+        V8_SCOPE(m_Isolate);
+
+        m_MicrotaskQueue->PerformCheckpoint(m_Isolate);
         m_Scheduler->ProcessTimers();
+
         return {true};
     }
 } // namespace js

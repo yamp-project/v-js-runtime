@@ -3,9 +3,11 @@
 #include "Timers.h"
 #include "stdafx.h"
 
+#include <v8-microtask-queue.h>
 #include <v-sdk/Resource.hpp>
 #include <fw/Logger.h>
 #include <v8helper.h>
+#include <memory>
 
 namespace js
 {
@@ -83,6 +85,7 @@ namespace js
         ResourceScheduler* m_Scheduler;
         EventManager* m_Events;
 
+        std::unique_ptr<v8::MicrotaskQueue> m_MicrotaskQueue;
         v8helper::Persistent<v8::Context> m_Context;
         std::string m_mainFilePath;
 
