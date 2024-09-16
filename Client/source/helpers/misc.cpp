@@ -1,6 +1,6 @@
 #include "misc.h"
 
-namespace misc
+namespace helpers
 {
     void Assert(bool condition, std::string_view error, bool terminate)
     {
@@ -31,4 +31,4 @@ namespace misc
 
         return out;
     }
-} // namespace misc
+} // namespace helpers
