@@ -41,7 +41,7 @@ namespace js
         v8::Local<v8::Context> context = m_Context.Get(isolate);
         v8::Context::Scope scope(context);
 
-        // RegisterNatives();
+        RegisterNatives();
         SetupGlobals();
     }
 
