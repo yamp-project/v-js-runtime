@@ -55,8 +55,9 @@ namespace js
         }
     }
 
-    Runtime::Runtime() : m_Platform(v8::platform::NewDefaultPlatform()), m_Resources(), m_Isolate(nullptr), m_GetLocalPlayerPos(nullptr)
+    Runtime::Runtime() : m_Platform(v8::platform::NewDefaultPlatform()), m_Resources(), m_Isolate(nullptr)
     {
+        //
     }
 
     Runtime::~Runtime()
@@ -77,7 +78,7 @@ namespace js
         createParams.allow_atomics_wait = false;
 
         m_Isolate = v8::Isolate::New(createParams);
-        misc::Assert(m_Isolate != nullptr, "Failed to create isolate");
+        helpers::Assert(m_Isolate != nullptr, "Failed to create isolate");
 
         m_Isolate->SetMicrotasksPolicy(v8::MicrotasksPolicy::kExplicit);
         m_Isolate->SetCaptureStackTraceForUncaughtExceptions(true, 5);
@@ -101,8 +102,6 @@ namespace js
         HMODULE clientModule = GetModuleHandleA("yamp_client.dll");
         auto RegisterOnEventCallback = reinterpret_cast<void (*)(void(yamp::sdk::AnyBuiltinEvent*))>(GetProcAddress(clientModule, "OnEvent"));
         RegisterOnEventCallback(Runtime::OnEvent);
-
-        m_GetLocalPlayerPos = reinterpret_cast<void (*)()>(GetProcAddress(clientModule, "GetLocalPlayerPos"));
     }
 
     void Runtime::OnStop()
@@ -125,7 +124,6 @@ namespace js
         v8::HandleScope handleScope(m_Isolate);
 
         v8::platform::PumpMessageLoop(m_Platform.get(), m_Isolate);
-        Log().Info("tick..");
     }
 
     sdk::Result Runtime::OnHandleResourceLoad(sdk::ResourceInformation* resourceInformation)

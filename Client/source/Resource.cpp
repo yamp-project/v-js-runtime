@@ -1,12 +1,13 @@
 #include "Resource.h"
 
-#include "helpers/io/subprocess.h"
-#include "helpers/io/console.h"
-#include "helpers/io/files.h"
 #include "helpers/misc.h"
+#include "io/subprocess.h"
+#include "io/files.h"
 
 #include "natives/NativesWrapper.h"
 #include "events/EventManager.h"
+#include "ResourceScheduler.h"
+#include "bindings/globals.h"
 
 static v8::MaybeLocal<v8::Module> DefaultImportCallback(v8::Local<v8::Context>, v8::Local<v8::String>, v8::Local<v8::FixedArray>, v8::Local<v8::Module>)
 {
@@ -26,10 +27,8 @@ namespace js
 {
     // TODO: see with others how we should handle the lifetime of the event manager (unique_ptr, manual)
     Resource::Resource(v8::Isolate* isolate, sdk::ResourceInformation* infos, bool isTypescript)
-        : m_Isolate(isolate), m_ResourceInformations(infos), m_IsTypescript(isTypescript), m_Events(new EventManager(this))
+        : m_Isolate(isolate), m_ResourceInformations(infos), m_IsTypescript(isTypescript), m_Scheduler(new ResourceScheduler(this)), m_Events(new EventManager(this))
     {
-        Log().Info("???");
-
         std::filesystem::path resourcePath = infos->m_Path;
         m_mainFilePath = (resourcePath / infos->m_MainFile).string();
         Log().Info("path -> {}", m_mainFilePath);
@@ -42,13 +41,14 @@ namespace js
         v8::Local<v8::Context> context = m_Context.Get(isolate);
         v8::Context::Scope scope(context);
 
-        RegisterNatives();
+        // RegisterNatives();
         SetupGlobals();
     }
 
     Resource::~Resource()
     {
-        //
+        delete m_Scheduler;
+        delete m_Events;
     }
 
     void Resource::SetupContext()
@@ -62,14 +62,17 @@ namespace js
         _context->SetAlignedPointerInEmbedderData(V8HELPER_MODULEHANDLER_EMBEDDER_FIELD, this);
         m_Context.Reset(m_Isolate, _context);
 
-        misc::Assert(!m_Context.IsEmpty(), "Failed to create context");
+        helpers::Assert(!m_Context.IsEmpty(), "Failed to create context");
     }
 
     void Resource::SetupGlobals()
     {
         v8helper::Object global = m_Context.Get(m_Isolate)->Global();
-        global.SetMethod("print", io::Print);
         global.SetMethod("onCore", EventManager::OnCore);
+
+        global.SetMethod("setTimeout", bindings::global::SetTimeout);
+        global.SetMethod("setInterval", bindings::global::SetInterval);
+        global.SetMethod("print", bindings::global::Print);
     }
 
     std::optional<std::string> Resource::ReadTsFile(std::string_view filePath)
@@ -100,7 +103,7 @@ namespace js
             if (nativeInformation)
             {
                 auto callback = v8::FunctionTemplate::New(m_Isolate, NativesWrapper::InvokeNative, v8::External::New(m_Isolate, nativeInformation));
-                global.SetMethod(misc::ToCamelCase(nativeInformation->m_Name), callback);
+                global.SetMethod(helpers::ToCamelCase(nativeInformation->m_Name), callback);
             }
         }
     }
@@ -175,6 +178,7 @@ namespace js
 
     sdk::Result Resource::OnTick()
     {
+        m_Scheduler->ProcessTimers();
         return {true};
     }
 } // namespace js

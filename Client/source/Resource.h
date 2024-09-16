@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Timers.h"
 #include "stdafx.h"
 
 #include <v-sdk/Resource.hpp>
@@ -10,6 +11,7 @@ namespace js
 {
     namespace sdk = yamp::sdk;
 
+    class ResourceScheduler;
     class EventManager;
     class Resource : public sdk::IResourceBase, public v8helper::IModuleHandler, public v8helper::IExceptionHandler
     {
@@ -54,6 +56,11 @@ namespace js
             return m_Events;
         }
 
+        [[nodiscard]] inline ResourceScheduler* GetScheduler() const
+        {
+            return m_Scheduler;
+        }
+
         [[nodiscard]] inline v8helper::Persistent<v8::Context> GetContext() const
         {
             return m_Context;
@@ -73,6 +80,7 @@ namespace js
         bool m_IsTypescript;
 
         v8::Isolate* m_Isolate;
+        ResourceScheduler* m_Scheduler;
         EventManager* m_Events;
 
         v8helper::Persistent<v8::Context> m_Context;

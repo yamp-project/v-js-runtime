@@ -60,10 +60,6 @@ namespace js
 
         IMPLEMENT_INSTANCE_FUNCTION(Runtime);
 
-        // temp
-        typedef void (*getLocalPlayerPos)();
-        getLocalPlayerPos m_GetLocalPlayerPos;
-
     private:
         std::unique_ptr<v8::Platform> m_Platform;
         std::vector<Resource*> m_Resources;
