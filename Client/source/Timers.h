@@ -18,7 +18,7 @@ namespace js
         int32_t delay;
         Type type;
 
-        STRONG_INLINE bool Repeat()
+        inline bool Repeat()
         {
             return type == Type::INTERVAL;
         }

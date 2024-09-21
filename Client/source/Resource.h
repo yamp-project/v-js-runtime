@@ -80,6 +80,7 @@ namespace js
     private:
         sdk::ResourceInformation* m_ResourceInformations;
         bool m_IsTypescript;
+        bool m_State;
 
         v8::Isolate* m_Isolate;
         ResourceScheduler* m_Scheduler;

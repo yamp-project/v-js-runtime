@@ -4,16 +4,20 @@
 #include "helpers/misc.h"
 #include "Resource.h"
 
-#include <v-sdk/factories/ResourceFactory.hpp>
-#include <fw/Logger.h>
-
 // TODO: remove
 #include <Windows.h>
+#include <v-sdk/factories/ResourceFactory.hpp>
+#include <fw/Logger.h>
 
 #define V8_SCOPE(isolate)                     \
     v8::Locker locker(isolate);               \
     v8::Isolate::Scope isolateScope(isolate); \
     v8::HandleScope scope(isolate)
+
+static void MessageListener(v8::Local<v8::Message> message, v8::Local<v8::Value> error)
+{
+    fw::Logger::Get("DEBUG")->Warn("[JS] V8 message received! {}", "");
+}
 
 namespace js
 {
@@ -68,7 +72,6 @@ namespace js
     void Runtime::SetupIsolate()
     {
         v8::V8::SetFlagsFromString("--harmony-import-assertions --short-builtin-calls --no-lazy --no-flush-bytecode");
-
         v8::V8::InitializePlatform(m_Platform.get());
         v8::V8::InitializeICU("D:/.yamp/v-client/bin/runtimes/icudtl_v8.dat");
         v8::V8::Initialize();
@@ -86,10 +89,10 @@ namespace js
         m_Isolate->SetFatalErrorHandler(OnFatalError);
         m_Isolate->SetOOMErrorHandler(OnHeapOOM);
         m_Isolate->AddNearHeapLimitCallback(OnNearHeapLimit, nullptr);
-        m_Isolate->SetPromiseRejectCallback(OnPromiseRejected);
-        // isolate->SetHostImportModuleDynamicallyCallback(ImportModuleDynamically);
-        // isolate->SetHostInitializeImportMetaObjectCallback(InitializeImportMetaObject);
-        // isolate->AddMessageListener(MessageListener);
+        // m_Isolate->SetPromiseRejectCallback(v8helper::IExceptionHandler::OnPromiseRejected);
+        // m_Isolate->SetHostImportModuleDynamicallyCallback(ImportModuleDynamically);
+        // m_Isolate->SetHostInitializeImportMetaObjectCallback(InitializeImportMetaObject);
+        m_Isolate->AddMessageListener(MessageListener);
     }
 
     void Runtime::OnStart()

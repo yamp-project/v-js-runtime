@@ -14,20 +14,11 @@ static v8::MaybeLocal<v8::Module> DefaultImportCallback(v8::Local<v8::Context>, 
     return v8::MaybeLocal<v8::Module>();
 }
 
-// clang-format off
-static v8helper::Module clientModule("@yamp/client", [](v8helper::ModuleTemplate& module)
-{
-    module.StaticProperty("isClient", true);
-
-    // module.StaticFunction("test", v8::FunctionTemplate::New(module.GetIsolate(), Temp, v8::External::New(module.GetIsolate(), nullptr)));
-}, nullptr, v8helper::Module::Option::EXPORT_AS_DEFAULT);
-// clang-format on
-
 namespace js
 {
     // TODO: see with others how we should handle the lifetime of the event manager (unique_ptr, manual)
     Resource::Resource(v8::Isolate* isolate, sdk::ResourceInformation* infos, bool isTypescript)
-        : m_Isolate(isolate), m_ResourceInformations(infos), m_IsTypescript(isTypescript), m_Scheduler(new ResourceScheduler(this)), m_Events(new EventManager(this))
+        : m_Isolate(isolate), m_ResourceInformations(infos), m_IsTypescript(isTypescript), m_State(false), m_Scheduler(new ResourceScheduler(this)), m_Events(new EventManager(this))
     {
         std::filesystem::path resourcePath = infos->m_Path;
         m_mainFilePath = (resourcePath / infos->m_MainFile).string();
@@ -102,7 +93,7 @@ namespace js
             sdk::NativeInformation* nativeInformation = nativeReflectionFactory->GetNativeInformation(native);
             if (nativeInformation)
             {
-                auto callback = v8::FunctionTemplate::New(m_Isolate, NativesWrapper::InvokeNative, v8::External::New(m_Isolate, nativeInformation));
+                v8::Local<v8::FunctionTemplate> callback = v8::FunctionTemplate::New(m_Isolate, NativesWrapper::InvokeNative, v8::External::New(m_Isolate, nativeInformation));
                 global.SetMethod(helpers::ToCamelCase(nativeInformation->m_Name), callback);
             }
         }
@@ -117,40 +108,67 @@ namespace js
             return false;
         }
 
+        V8_SCOPE(m_Isolate);
+        v8::TryCatch tryCatch(m_Isolate);
+
         v8::ScriptOrigin origin{m_Isolate, v8helper::String(m_ResourceInformations->m_Name), 0, 0, false, 0, v8::Local<v8::Value>(), false, false, true, v8::Local<v8::PrimitiveArray>()};
         v8::ScriptCompiler::Source compilerSource{v8helper::String(*result), origin};
         v8::MaybeLocal<v8::Module> maybeModule = v8::ScriptCompiler::CompileModule(m_Isolate, &compilerSource);
-
-        v8::Local<v8::Module> mod;
-        if (!maybeModule.ToLocal(&mod))
+        if (maybeModule.IsEmpty())
         {
-            Log().Error("Failed to compile module");
+            Log().Error("Failed to compile file");
+            if (tryCatch.HasCaught())
+            {
+                tryCatch.Reset();
+            }
+
             return false;
         }
 
+        v8::Local<v8::Module> mod = maybeModule.ToLocalChecked();
         v8::Maybe<bool> instantiated = mod->InstantiateModule(m_Context.Get(m_Isolate), DefaultImportCallback);
-        if (!instantiated.FromMaybe(false) || mod->GetStatus() != v8::Module::Status::kInstantiated)
+        if (!instantiated.FromMaybe(false) || tryCatch.HasCaught())
         {
             Log().Error("Failed to instantiate module");
+
+            if (mod->GetStatus() == v8::Module::kErrored)
+            {
+                v8helper::Object exception = mod->GetException().As<v8::Object>();
+                Log().Error("{}", exception.Get<std::string>("message"));
+
+                if (std::string stack = exception.Get<std::string>("stack"); !stack.empty())
+                {
+                    Log().Error("{}", stack);
+                }
+            }
+
+            if (tryCatch.HasCaught())
+            {
+                tryCatch.Reset();
+            }
+
             return false;
         }
 
-        auto _ = mod->Evaluate(m_Context.Get(m_Isolate));
-        if (mod->GetStatus() != v8::Module::Status::kEvaluated)
+        v8::MaybeLocal<v8::Value> maybeResult = mod->Evaluate(m_Context.Get(m_Isolate));
+        if (maybeResult.IsEmpty() || maybeResult.ToLocalChecked().As<v8::Promise>()->State() == v8::Promise::PromiseState::kRejected)
         {
             Log().Error("Failed to evaluate module");
-            return false;
-        }
 
-        if (mod->GetStatus() == v8::Module::kErrored)
-        {
-            v8helper::Object exceptionObj = mod->GetException().As<v8::Object>();
-            Log().Error("{}", exceptionObj.Get<std::string>("message"));
-
-            std::string stack = exceptionObj.Get<std::string>("stack");
-            if (!stack.empty())
+            if (mod->GetStatus() == v8::Module::kErrored)
             {
-                Log().Error("{}", stack);
+                v8helper::Object exception = mod->GetException().As<v8::Object>();
+                Log().Error("{}", exception.Get<std::string>("message"));
+
+                if (std::string stack = exception.Get<std::string>("stack"); !stack.empty())
+                {
+                    Log().Error("{}", stack);
+                }
+            }
+
+            if (tryCatch.HasCaught())
+            {
+                tryCatch.Reset();
             }
 
             return false;
@@ -161,11 +179,8 @@ namespace js
 
     sdk::Result Resource::OnStart()
     {
-        V8_SCOPE(m_Isolate);
-        v8::Context::Scope ctxScope(m_Context.Get(m_Isolate));
-
-        bool status = RunCode(m_mainFilePath);
-        return {status};
+        m_State = RunCode(m_mainFilePath);
+        return {m_State};
     }
 
     sdk::Result Resource::OnStop()
@@ -178,8 +193,11 @@ namespace js
     {
         V8_SCOPE(m_Isolate);
 
-        m_MicrotaskQueue->PerformCheckpoint(m_Isolate);
-        m_Scheduler->ProcessTimers();
+        if (m_State)
+        {
+            m_MicrotaskQueue->PerformCheckpoint(m_Isolate);
+            m_Scheduler->ProcessTimers();
+        }
 
         return {true};
     }
