@@ -22,7 +22,7 @@ BOOL WINAPI DllMain(HINSTANCE instanceDll, DWORD reason, LPVOID reserved)
         auto runtimeFactory = sdk::IRuntimeFactory::GetInstance();
         logger->Info("Runtime factory instance: {}\n", fmt::ptr(runtimeFactory));
 
-        js::Runtime* runtime = js::Runtime::GetInstance();
+        Runtime* runtime = Runtime::GetInstance();
 
         // TODO: terminate the process if sdk::Return is a falsy value
         sdk::Result result = runtimeFactory->RegisterRuntime(runtime);

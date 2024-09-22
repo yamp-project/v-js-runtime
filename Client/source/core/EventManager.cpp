@@ -7,7 +7,7 @@ namespace core
 {
     void EventManager::OnCore(v8helper::FunctionContext& ctx)
     {
-        js::Resource* resource = js::Runtime::GetInstance()->GetResourceByContext(ctx.GetContext());
+        Resource* resource = Runtime::GetInstance()->GetResourceByContext(ctx.GetContext());
         if (!ctx.CheckArgCount(2) || resource == nullptr)
         {
             return;
@@ -27,7 +27,7 @@ namespace core
         resource->GetEventManager().RegisterEvent(EventType::CORE, eventName, callback);
     }
 
-    EventManager::EventManager(js::Resource* parentResource) : m_ParentResource(parentResource), m_CoreEventHandlers(), m_LocalEventHandlers(), m_RemoteEventHandlers()
+    EventManager::EventManager(Resource* parentResource) : m_ParentResource(parentResource), m_CoreEventHandlers(), m_LocalEventHandlers(), m_RemoteEventHandlers()
     {
         //
     }

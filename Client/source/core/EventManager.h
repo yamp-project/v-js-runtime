@@ -1,14 +1,9 @@
 #pragma once
 
-#include "stdafx.h"
-
 #include <fw/Logger.h>
 #include <v8helper.h>
 
-namespace js
-{
-    class Resource;
-}
+class Resource;
 
 namespace core
 {
@@ -28,13 +23,13 @@ namespace core
         static void OnLocal(v8helper::FunctionContext& ctx);
         static void OnRemote(v8helper::FunctionContext& ctx);
 
-        EventManager(js::Resource* parentResource);
+        EventManager(Resource* parentResource);
 
         void RegisterEvent(EventType eventType, std::string_view eventName, v8helper::Persistent<v8::Function> callback);
         void DispatchEvent(EventType eventType, std::string_view eventName, std::vector<v8::Local<v8::Value>>& args);
 
     private:
-        js::Resource* m_ParentResource;
+        Resource* m_ParentResource;
 
         EventHandlers m_CoreEventHandlers;
         EventHandlers m_LocalEventHandlers;

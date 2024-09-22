@@ -10,7 +10,7 @@ namespace core
     void ExceptionHandler::OnPromiseRejected(v8::PromiseRejectMessage message)
     {
         v8::Local<v8::Context> context = message.GetPromise()->GetCreationContextChecked();
-        if (js::Resource* resource = js::Runtime::GetInstance()->GetResourceByContext(context))
+        if (Resource* resource = Runtime::GetInstance()->GetResourceByContext(context))
         {
             ExceptionHandler& handler = resource->GetExceptionHandler();
             switch (message.GetEvent())
@@ -33,7 +33,7 @@ namespace core
         }
     }
 
-    ExceptionHandler::ExceptionHandler(js::Resource* parentResource) : m_PromiseRejections(), m_ParentResource(parentResource)
+    ExceptionHandler::ExceptionHandler(Resource* parentResource) : m_PromiseRejections(), m_ParentResource(parentResource)
     {
         //
     }
@@ -71,8 +71,8 @@ namespace core
             m_PromiseRejections.emplace_back(
                 std::make_unique<v8::Persistent<v8::Promise>>(isolate, message.GetPromise()),
                 std::make_unique<v8::Persistent<v8::Value>>(isolate, message.GetValue()),
-                SourceLocation::GetCurrent(m_ParentResource),
-                StackTrace::GetCurrent(isolate, m_ParentResource->GetResourceInformation()->m_MainFile, 0)
+                js::SourceLocation::GetCurrent(m_ParentResource),
+                js::StackTrace::GetCurrent(isolate, m_ParentResource->GetResourceInformation()->m_MainFile, 0)
             );
         // clang-format on
     }

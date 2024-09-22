@@ -2,7 +2,6 @@
 
 #include "Resource.h"
 #include "Runtime.h"
-#include "stdafx.h"
 
 #include <fw/Logger.h>
 
@@ -10,7 +9,7 @@ namespace core
 {
     void Scheduler::CreateTimer(v8helper::FunctionContext& ctx, Timer::Type type)
     {
-        js::Resource* resource = js::Runtime::GetInstance()->GetResourceByContext(ctx.GetContext());
+        Resource* resource = Runtime::GetInstance()->GetResourceByContext(ctx.GetContext());
         if (!ctx.CheckArgCount(2) || resource == nullptr)
         {
             return;
@@ -32,7 +31,7 @@ namespace core
         resource->GetScheduler().RegisterTimer(expiry, {callback, delay, type});
     }
 
-    Scheduler::Scheduler(js::Resource* parentResource) : m_ParentResource(parentResource), m_Timers(), m_ExpiredTimers()
+    Scheduler::Scheduler(Resource* parentResource) : m_ParentResource(parentResource), m_Timers(), m_ExpiredTimers()
     {
         //
     }

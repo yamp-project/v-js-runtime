@@ -1,7 +1,5 @@
 #pragma once
 
-#include "stdafx.h"
-
 namespace io
 {
     std::string ReadFilePipe(FILE* pipe);

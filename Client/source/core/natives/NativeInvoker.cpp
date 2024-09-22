@@ -24,16 +24,16 @@ namespace core
         sdk::NativeInformation* native = static_cast<sdk::NativeInformation*>(_info.Data().As<v8::External>()->Value());
         v8helper::FunctionContext ctx{_info};
 
-        js::Resource* resource = js::Runtime::GetInstance()->GetResourceByContext(ctx.GetContext());
+        Resource* resource = Runtime::GetInstance()->GetResourceByContext(ctx.GetContext());
         if (resource == nullptr)
         {
-            js::Runtime::Log().Error("native call '{}' failed, no bound resource found.", native->m_Name);
+            Runtime::Log().Error("native call '{}' failed, no bound resource found.", native->m_Name);
             return;
         }
 
         if (ctx.GetArgCount() != native->m_ParameterValueArraySize)
         {
-            js::Runtime::Log().Error("native call '{}' failed. Expected {} arguments but {} was passed.", native->m_Name, native->m_ParameterValueArraySize, ctx.GetArgCount());
+            Runtime::Log().Error("native call '{}' failed. Expected {} arguments but {} was passed.", native->m_Name, native->m_ParameterValueArraySize, ctx.GetArgCount());
             return;
         }
 
@@ -48,7 +48,7 @@ namespace core
         }
     }
 
-    NativeInvoker::NativeInvoker(js::Resource* parentResource) : m_ParentResource(parentResource), m_PushArgumentMapping(), m_ReturnValueMapping()
+    NativeInvoker::NativeInvoker(Resource* parentResource) : m_ParentResource(parentResource), m_PushArgumentMapping(), m_ReturnValueMapping()
     {
         IMPLEMENT_PUSH_ARGUMENT(sdk::NativeValueType::Bool, bool);
         IMPLEMENT_PUSH_ARGUMENT(sdk::NativeValueType::Int, int32_t);
@@ -71,8 +71,8 @@ namespace core
 #ifdef DEBUG_BUILD
             if (handler == nullptr)
             {
-                // TODO: log the current resource name
-                js::Runtime::Log().Error("unsupported data type {} for the native {} at the index {}", (uint8_t)native->m_ParameterValueArrayData[i].m_Type, native->m_Name, i);
+                uint8_t type = native->m_ParameterValueArrayData[i].m_Type;
+                Runtime::Log().Error("{}: unsupported data type {} for the native {} at the index {}", m_ParentResource->GetResourceInformation()->m_Name, type, native->m_Name, i);
                 return false;
             }
 #endif

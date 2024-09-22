@@ -1,16 +1,13 @@
 #pragma once
 
-#include "stdafx.h"
+#include "defines.h"
 
 #include <v-sdk/factories/NativeFactory.hpp>
 #include <v8helper.h>
 
 using namespace yamp;
 
-namespace js
-{
-    class Resource;
-}
+class Resource;
 
 namespace core
 {
@@ -23,13 +20,13 @@ namespace core
     public:
         static void Invoke(const v8::FunctionCallbackInfo<v8::Value>& _info);
 
-        NativeInvoker(js::Resource* parentResource);
+        NativeInvoker(Resource* parentResource);
 
         STRONG_INLINE bool TryToPushArguments(Ctx& ctx, Invoker* invoker, sdk::NativeInformation* native);
         STRONG_INLINE void TryToReturnValue(Ctx& ctx, Invoker* invoker, uint8_t type);
 
     private:
-        js::Resource* m_ParentResource;
+        Resource* m_ParentResource;
 
         // TODO: replace 7 with enum max value
         void (*m_PushArgumentMapping[7])(Ctx& ctx, Invoker* invoker, uint32_t index);

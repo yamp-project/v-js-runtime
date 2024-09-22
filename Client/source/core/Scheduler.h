@@ -5,10 +5,7 @@
 
 using TimerExpiry = std::chrono::time_point<std::chrono::steady_clock, std::chrono::steady_clock::duration>;
 
-namespace js
-{
-    class Resource;
-}
+class Resource;
 
 namespace core
 {
@@ -36,13 +33,13 @@ namespace core
     public:
         static void CreateTimer(v8helper::FunctionContext& ctx, Timer::Type type);
 
-        Scheduler(js::Resource* parentResource);
+        Scheduler(Resource* parentResource);
 
         void RegisterTimer(TimerExpiry expiry, Timer&& timer);
         void ProcessTimers();
 
     private:
-        js::Resource* m_ParentResource;
+        Resource* m_ParentResource;
 
         std::multimap<std::chrono::time_point<std::chrono::steady_clock>, Timer> m_Timers; // A multimap to store timers by their expiry time (sorted automatically)
         std::vector<Timer> m_ExpiredTimers;                                                // Reused vector

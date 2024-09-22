@@ -1,7 +1,7 @@
 #pragma once
 
-#include "helpers/SourceLocation.h"
-#include "helpers/StackTrace.h"
+#include "helpers/js/SourceLocation.h"
+#include "helpers/js/StackTrace.h"
 
 #include <v8.h>
 
@@ -14,15 +14,15 @@ namespace core
         {
             std::unique_ptr<v8::Persistent<v8::Promise>> m_Promise;
             std::shared_ptr<v8::Persistent<v8::Value>> m_Value;
-            SourceLocation m_SourceLocation;
-            StackTrace m_StackTrace;
+            js::SourceLocation m_SourceLocation;
+            js::StackTrace m_StackTrace;
 
             // clang-format off
             PromiseRejection(
                 std::unique_ptr<v8::Persistent<v8::Promise>> promise,
                 std::unique_ptr<v8::Persistent<v8::Value>> value,
-                SourceLocation sourceLocation,
-                StackTrace stackTrace
+                js::SourceLocation sourceLocation,
+                js::StackTrace stackTrace
             )
                 : m_Promise(std::move(promise)), m_Value(std::move(value)), m_SourceLocation(std::move(sourceLocation)), m_StackTrace(stackTrace)
             {
@@ -37,12 +37,12 @@ namespace core
 
         static void OnPromiseRejected(v8::PromiseRejectMessage message);
 
-        ExceptionHandler(js::Resource* parentResource);
+        ExceptionHandler(Resource* parentResource);
 
         void ProcessExceptions();
 
     private:
-        js::Resource* m_ParentResource;
+        Resource* m_ParentResource;
 
         std::vector<PromiseRejection> m_PromiseRejections;
 
