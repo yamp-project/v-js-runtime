@@ -9,6 +9,7 @@
 #include "ResourceScheduler.h"
 #include "ExceptionHandler.h"
 #include "bindings/globals.h"
+#include <v8helper.h>
 
 static v8::MaybeLocal<v8::Module> DefaultImportCallback(v8::Local<v8::Context>, v8::Local<v8::String>, v8::Local<v8::FixedArray>, v8::Local<v8::Module>)
 {

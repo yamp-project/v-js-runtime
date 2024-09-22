@@ -6,7 +6,6 @@
 #include <v8-microtask-queue.h>
 #include <v-sdk/Resource.hpp>
 #include <fw/Logger.h>
-#include <v8helper.h>
 #include <memory>
 
 namespace js
@@ -86,7 +85,7 @@ namespace js
         std::unique_ptr<EventManager> m_Events;
 
         std::unique_ptr<v8::MicrotaskQueue> m_MicrotaskQueue;
-        v8helper::Persistent<v8::Context> m_Context;
+        v8::Persistent<v8::Context> m_Context;
         std::string m_mainFilePath;
 
         void SetupContext();
