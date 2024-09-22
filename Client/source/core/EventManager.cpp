@@ -27,7 +27,7 @@ namespace js
         resource->GetEventManager().RegisterEvent(EventType::CORE, eventName, callback);
     }
 
-    EventManager::EventManager(Resource* resource) : m_ParentResource(resource), m_CoreEventHandlers(), m_LocalEventHandlers(), m_RemoteEventHandlers()
+    EventManager::EventManager(Resource* parentResource) : m_ParentResource(parentResource), m_CoreEventHandlers(), m_LocalEventHandlers(), m_RemoteEventHandlers()
     {
         //
     }

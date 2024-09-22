@@ -4,8 +4,8 @@
 #include "Resource.h"
 #include "helpers/SourceLocation.h"
 #include "helpers/StackTrace.h"
-#include "fw/Logger.h"
 
+#include <fw/Logger.h>
 #include <memory>
 #include <string>
 #include <vector>

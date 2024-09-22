@@ -1,6 +1,6 @@
 #include "globals.h"
 
-#include "Timers.h"
+#include "core/Scheduler.h"
 
 #include <fw/Logger.h>
 
@@ -8,12 +8,12 @@ namespace bindings::global
 {
     void SetInterval(v8helper::FunctionContext& ctx)
     {
-        js::TimerFactory::CreateIntervalTimer(ctx);
+        js::Scheduler::CreateTimer(ctx, js::Timer::Type::INTERVAL);
     }
 
     void SetTimeout(v8helper::FunctionContext& ctx)
     {
-        js::TimerFactory::CreateTimeoutTimer(ctx);
+        js::Scheduler::CreateTimer(ctx, js::Timer::Type::TIMEOUT);
     }
 
     void Print(v8helper::FunctionContext& ctx)

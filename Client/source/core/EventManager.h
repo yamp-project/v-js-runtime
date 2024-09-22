@@ -14,7 +14,6 @@ enum EventType : uint8_t
 
 namespace js
 {
-
     class Resource;
     class EventManager
     {
@@ -25,7 +24,7 @@ namespace js
         static void OnLocal(v8helper::FunctionContext& ctx);
         static void OnRemote(v8helper::FunctionContext& ctx);
 
-        EventManager(Resource* resource);
+        EventManager(Resource* parentResource);
         ~EventManager();
 
         void RegisterEvent(EventType eventType, std::string_view eventName, v8helper::Persistent<v8::Function> callback);

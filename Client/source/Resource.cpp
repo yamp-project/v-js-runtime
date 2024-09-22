@@ -4,10 +4,10 @@
 #include "io/subprocess.h"
 #include "io/files.h"
 
-#include "natives/NativesWrapper.h"
-#include "events/EventManager.h"
-#include "Scheduler.h"
-#include "ExceptionHandler.h"
+#include "core/natives/NativeInvoker.h"
+#include "core/EventManager.h"
+#include "core/Scheduler.h"
+#include "core/ExceptionHandler.h"
 #include "bindings/globals.h"
 #include <v8helper.h>
 
@@ -25,6 +25,7 @@ namespace js
         m_IsTypescript(isTypescript),
         m_State(false),
         m_ExceptionHandler(std::make_unique<ExceptionHandler>(this)),
+        m_NativeInvoker(std::make_unique<NativeInvoker>(this)),
         m_Events(std::make_unique<EventManager>(this)),
         m_Scheduler(std::make_unique<Scheduler>(this))
     // clang-format on
@@ -83,7 +84,7 @@ namespace js
             sdk::NativeInformation* nativeInformation = nativeReflectionFactory->GetNativeInformation(native);
             if (nativeInformation)
             {
-                v8::Local<v8::FunctionTemplate> callback = v8::FunctionTemplate::New(m_Isolate, NativesWrapper::InvokeNative, v8::External::New(m_Isolate, nativeInformation));
+                v8::Local<v8::FunctionTemplate> callback = v8::FunctionTemplate::New(m_Isolate, NativeInvoker::Invoke, v8::External::New(m_Isolate, nativeInformation));
                 global.SetMethod(helpers::ToCamelCase(nativeInformation->m_Name), callback);
             }
         }

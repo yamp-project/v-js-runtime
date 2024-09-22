@@ -1,7 +1,7 @@
 #include "Runtime.h"
 
-#include "ExceptionHandler.h"
-#include "events/EventManager.h"
+#include "core/ExceptionHandler.h"
+#include "core/EventManager.h"
 #include "helpers/misc.h"
 #include "Resource.h"
 

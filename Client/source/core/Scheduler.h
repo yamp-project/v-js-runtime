@@ -1,18 +1,37 @@
 #pragma once
 
-#include "Timers.h"
-
+#include <v8helper.h>
 #include <map>
 
 using TimerExpiry = std::chrono::time_point<std::chrono::steady_clock, std::chrono::steady_clock::duration>;
 
 namespace js
 {
-    class Resource;
+    struct Timer
+    {
+        enum Type : uint8_t
+        {
+            INTERVAL,
+            TIMEOUT,
+            IMMEDIATE
+        };
 
+        v8helper::Persistent<v8::Function> callback;
+        int32_t delay;
+        Type type;
+
+        inline bool Repeat()
+        {
+            return type == Type::INTERVAL;
+        }
+    };
+
+    class Resource;
     class Scheduler
     {
     public:
+        static void CreateTimer(v8helper::FunctionContext& ctx, Timer::Type type);
+
         Scheduler(js::Resource* parentResource) : m_ParentResource(parentResource), m_Timers(), m_ExpiredTimers()
         {
             //

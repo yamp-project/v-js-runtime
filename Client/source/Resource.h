@@ -1,11 +1,13 @@
 #pragma once
 
-#include "Timers.h"
 #include "stdafx.h"
 
 #include <v-sdk/Resource.hpp>
 #include <fw/Logger.h>
 #include <memory>
+#include <v8.h>
+
+class NativeInvoker;
 
 namespace js
 {
@@ -35,6 +37,11 @@ namespace js
         inline EventManager& GetEventManager() const
         {
             return *m_Events;
+        }
+
+        inline NativeInvoker& GetNativeInvoker() const
+        {
+            return *m_NativeInvoker;
         }
 
         inline Scheduler& GetScheduler() const
@@ -71,6 +78,7 @@ namespace js
         // extensions
         std::unique_ptr<v8::MicrotaskQueue> m_MicrotaskQueue;
         std::unique_ptr<ExceptionHandler> m_ExceptionHandler;
+        std::unique_ptr<NativeInvoker> m_NativeInvoker;
         std::unique_ptr<EventManager> m_Events;
         std::unique_ptr<Scheduler> m_Scheduler;
 
