@@ -1,4 +1,4 @@
-#include "ResourceScheduler.h"
+#include "Scheduler.h"
 
 #include "Resource.h"
 #include "fw/Logger.h"
@@ -6,12 +6,12 @@
 
 namespace js
 {
-    void ResourceScheduler::RegisterTimer(TimerExpiry expiry, Timer&& timer)
+    void Scheduler::RegisterTimer(TimerExpiry expiry, Timer&& timer)
     {
         m_Timers.emplace(expiry, std::move(timer));
     }
 
-    void ResourceScheduler::ProcessTimers()
+    void Scheduler::ProcessTimers()
     {
         auto now = std::chrono::steady_clock::now();
         v8::Isolate* isolate = m_ParentResource->GetIsolate();

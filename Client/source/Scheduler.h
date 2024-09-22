@@ -9,10 +9,11 @@ using TimerExpiry = std::chrono::time_point<std::chrono::steady_clock, std::chro
 namespace js
 {
     class Resource;
-    class ResourceScheduler
+
+    class Scheduler
     {
     public:
-        ResourceScheduler(js::Resource* parentResource) : m_ParentResource(parentResource), m_Timers(), m_ExpiredTimers()
+        Scheduler(js::Resource* parentResource) : m_ParentResource(parentResource), m_Timers(), m_ExpiredTimers()
         {
             //
         }

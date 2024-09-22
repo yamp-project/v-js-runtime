@@ -12,8 +12,8 @@ namespace js
     namespace sdk = yamp::sdk;
 
     class ExceptionHandler;
-    class ResourceScheduler;
     class EventManager;
+    class Scheduler;
 
     class Resource : public sdk::IResourceBase
     {
@@ -37,7 +37,7 @@ namespace js
             return *m_Events;
         }
 
-        inline ResourceScheduler& GetScheduler() const
+        inline Scheduler& GetScheduler() const
         {
             return *m_Scheduler;
         }
@@ -71,8 +71,8 @@ namespace js
         // extensions
         std::unique_ptr<v8::MicrotaskQueue> m_MicrotaskQueue;
         std::unique_ptr<ExceptionHandler> m_ExceptionHandler;
-        std::unique_ptr<ResourceScheduler> m_Scheduler;
         std::unique_ptr<EventManager> m_Events;
+        std::unique_ptr<Scheduler> m_Scheduler;
 
         v8::Persistent<v8::Context> m_Context;
         std::string m_mainFilePath;

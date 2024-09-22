@@ -6,7 +6,7 @@
 
 #include "natives/NativesWrapper.h"
 #include "events/EventManager.h"
-#include "ResourceScheduler.h"
+#include "Scheduler.h"
 #include "ExceptionHandler.h"
 #include "bindings/globals.h"
 #include <v8helper.h>
@@ -18,9 +18,16 @@ static v8::MaybeLocal<v8::Module> DefaultImportCallback(v8::Local<v8::Context>, 
 
 namespace js
 {
-    Resource::Resource(v8::Isolate* isolate, sdk::ResourceInformation* infos, bool isTypescript)
-        : m_Isolate(isolate), m_ResourceInformations(infos), m_IsTypescript(isTypescript), m_State(false), m_ExceptionHandler(std::make_unique<ExceptionHandler>(this)),
-          m_Scheduler(std::make_unique<ResourceScheduler>(this)), m_Events(std::make_unique<EventManager>(this))
+    // clang-format off
+    Resource::Resource(v8::Isolate* isolate, sdk::ResourceInformation* infos, bool isTypescript) :
+        m_Isolate(isolate),
+        m_ResourceInformations(infos),
+        m_IsTypescript(isTypescript),
+        m_State(false),
+        m_ExceptionHandler(std::make_unique<ExceptionHandler>(this)),
+        m_Events(std::make_unique<EventManager>(this)),
+        m_Scheduler(std::make_unique<Scheduler>(this))
+    // clang-format on
     {
         std::filesystem::path resourcePath = infos->m_Path;
         m_mainFilePath = (resourcePath / infos->m_MainFile).string();
