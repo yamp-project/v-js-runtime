@@ -44,9 +44,8 @@ namespace js
         v8helper::Class::Initialize(m_Isolate);
 
         m_MicrotaskQueue = v8::MicrotaskQueue::New(m_Isolate, v8::MicrotasksPolicy::kExplicit);
-        v8::Local<v8::Context> _context = v8::Context::New(m_Isolate, nullptr, v8::Local<v8::ObjectTemplate>(), v8::Local<v8::Value>(), nullptr, m_MicrotaskQueue.get());
-        _context->SetAlignedPointerInEmbedderData(V8HELPER_MODULEHANDLER_EMBEDDER_FIELD, this);
-        m_Context.Reset(m_Isolate, _context);
+        v8::Local<v8::Context> context = v8::Context::New(m_Isolate, nullptr, v8::Local<v8::ObjectTemplate>(), v8::Local<v8::Value>(), nullptr, m_MicrotaskQueue.get());
+        m_Context.Reset(m_Isolate, context);
 
         helpers::Assert(!m_Context.IsEmpty(), "Failed to create context");
     }
