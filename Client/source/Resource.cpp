@@ -108,9 +108,7 @@ namespace js
             return false;
         }
 
-        V8_SCOPE(m_Isolate);
         v8::TryCatch tryCatch(m_Isolate);
-
         v8::ScriptOrigin origin{m_Isolate, v8helper::String(m_ResourceInformations->m_Name), 0, 0, false, 0, v8::Local<v8::Value>(), false, false, true, v8::Local<v8::PrimitiveArray>()};
         v8::ScriptCompiler::Source compilerSource{v8helper::String(*result), origin};
         v8::MaybeLocal<v8::Module> maybeModule = v8::ScriptCompiler::CompileModule(m_Isolate, &compilerSource);
@@ -179,6 +177,9 @@ namespace js
 
     sdk::Result Resource::OnStart()
     {
+        V8_SCOPE(m_Isolate);
+        v8::Context::Scope ctxScope(m_Context.Get(m_Isolate));
+
         m_State = RunCode(m_mainFilePath);
         return {m_State};
     }
