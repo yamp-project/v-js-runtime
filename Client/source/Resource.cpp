@@ -1,14 +1,15 @@
 #include "Resource.h"
 
-#include "helpers/misc.h"
+#include "bindings/globals.h"
 #include "io/subprocess.h"
 #include "io/files.h"
+#include "helpers/misc.h"
 
 #include "core/natives/NativeInvoker.h"
 #include "core/EventManager.h"
 #include "core/Scheduler.h"
 #include "core/ExceptionHandler.h"
-#include "bindings/globals.h"
+
 #include <v8helper.h>
 
 static v8::MaybeLocal<v8::Module> DefaultImportCallback(v8::Local<v8::Context>, v8::Local<v8::String>, v8::Local<v8::FixedArray>, v8::Local<v8::Module>)
@@ -24,10 +25,10 @@ namespace js
         m_ResourceInformations(infos),
         m_IsTypescript(isTypescript),
         m_State(false),
-        m_ExceptionHandler(std::make_unique<ExceptionHandler>(this)),
-        m_NativeInvoker(std::make_unique<NativeInvoker>(this)),
-        m_Events(std::make_unique<EventManager>(this)),
-        m_Scheduler(std::make_unique<Scheduler>(this))
+        m_ExceptionHandler(std::make_unique<core::ExceptionHandler>(this)),
+        m_NativeInvoker(std::make_unique<core::NativeInvoker>(this)),
+        m_Events(std::make_unique<core::EventManager>(this)),
+        m_Scheduler(std::make_unique<core::Scheduler>(this))
     // clang-format on
     {
         std::filesystem::path resourcePath = infos->m_Path;
@@ -67,7 +68,7 @@ namespace js
     void Resource::SetupGlobals()
     {
         v8helper::Object global = m_Context.Get(m_Isolate)->Global();
-        global.SetMethod("onCore", EventManager::OnCore);
+        global.SetMethod("onCore", core::EventManager::OnCore);
 
         global.SetMethod("setTimeout", bindings::global::SetTimeout);
         global.SetMethod("setInterval", bindings::global::SetInterval);
@@ -84,7 +85,7 @@ namespace js
             sdk::NativeInformation* nativeInformation = nativeReflectionFactory->GetNativeInformation(native);
             if (nativeInformation)
             {
-                v8::Local<v8::FunctionTemplate> callback = v8::FunctionTemplate::New(m_Isolate, NativeInvoker::Invoke, v8::External::New(m_Isolate, nativeInformation));
+                v8::Local<v8::FunctionTemplate> callback = v8::FunctionTemplate::New(m_Isolate, core::NativeInvoker::Invoke, v8::External::New(m_Isolate, nativeInformation));
                 global.SetMethod(helpers::ToCamelCase(nativeInformation->m_Name), callback);
             }
         }

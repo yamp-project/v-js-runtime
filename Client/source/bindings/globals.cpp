@@ -8,12 +8,12 @@ namespace bindings::global
 {
     void SetInterval(v8helper::FunctionContext& ctx)
     {
-        js::Scheduler::CreateTimer(ctx, js::Timer::Type::INTERVAL);
+        core::Scheduler::CreateTimer(ctx, core::Timer::Type::INTERVAL);
     }
 
     void SetTimeout(v8helper::FunctionContext& ctx)
     {
-        js::Scheduler::CreateTimer(ctx, js::Timer::Type::TIMEOUT);
+        core::Scheduler::CreateTimer(ctx, core::Timer::Type::TIMEOUT);
     }
 
     void Print(v8helper::FunctionContext& ctx)

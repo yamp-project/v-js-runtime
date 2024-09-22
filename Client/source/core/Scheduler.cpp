@@ -6,11 +6,11 @@
 
 #include <fw/Logger.h>
 
-namespace js
+namespace core
 {
     void Scheduler::CreateTimer(v8helper::FunctionContext& ctx, Timer::Type type)
     {
-        Resource* resource = Runtime::GetInstance()->GetResourceByContext(ctx.GetContext());
+        js::Resource* resource = js::Runtime::GetInstance()->GetResourceByContext(ctx.GetContext());
         if (!ctx.CheckArgCount(2) || resource == nullptr)
         {
             return;
@@ -30,6 +30,11 @@ namespace js
 
         TimerExpiry expiry = std::chrono::steady_clock::now() + std::chrono::milliseconds(delay);
         resource->GetScheduler().RegisterTimer(expiry, {callback, delay, type});
+    }
+
+    Scheduler::Scheduler(js::Resource* parentResource) : m_ParentResource(parentResource), m_Timers(), m_ExpiredTimers()
+    {
+        //
     }
 
     void Scheduler::RegisterTimer(TimerExpiry expiry, Timer&& timer)
@@ -91,4 +96,4 @@ namespace js
             }
         }
     }
-} // namespace js
+} // namespace core

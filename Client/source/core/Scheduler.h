@@ -7,6 +7,11 @@ using TimerExpiry = std::chrono::time_point<std::chrono::steady_clock, std::chro
 
 namespace js
 {
+    class Resource;
+}
+
+namespace core
+{
     struct Timer
     {
         enum Type : uint8_t
@@ -26,16 +31,12 @@ namespace js
         }
     };
 
-    class Resource;
     class Scheduler
     {
     public:
         static void CreateTimer(v8helper::FunctionContext& ctx, Timer::Type type);
 
-        Scheduler(js::Resource* parentResource) : m_ParentResource(parentResource), m_Timers(), m_ExpiredTimers()
-        {
-            //
-        }
+        Scheduler(js::Resource* parentResource);
 
         void RegisterTimer(TimerExpiry expiry, Timer&& timer);
         void ProcessTimers();
@@ -46,4 +47,4 @@ namespace js
         std::multimap<std::chrono::time_point<std::chrono::steady_clock>, Timer> m_Timers; // A multimap to store timers by their expiry time (sorted automatically)
         std::vector<Timer> m_ExpiredTimers;                                                // Reused vector
     };
-} // namespace js
+} // namespace core

@@ -17,7 +17,7 @@ namespace js
     class Runtime : public fw::utils::InstanceBase, public sdk::IRuntimeBase
     {
     public:
-        [[nodiscard]] inline static fw::Logger& Log()
+        inline static fw::Logger& Log()
         {
             return *fw::Logger::Get("JS::Runtime");
         }

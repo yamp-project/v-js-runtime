@@ -4,18 +4,25 @@
 
 #include <v-sdk/Resource.hpp>
 #include <fw/Logger.h>
-#include <memory>
 #include <v8.h>
 
-class NativeInvoker;
+#define IMPLEMENT_GET(ReturnType, Name, Field) \
+    STRONG_INLINE ReturnType Get##Name() const \
+    {                                          \
+        return Field;                          \
+    }
+
+namespace core
+{
+    class ExceptionHandler;
+    class NativeInvoker;
+    class EventManager;
+    class Scheduler;
+} // namespace core
 
 namespace js
 {
     namespace sdk = yamp::sdk;
-
-    class ExceptionHandler;
-    class EventManager;
-    class Scheduler;
 
     class Resource : public sdk::IResourceBase
     {
@@ -29,40 +36,18 @@ namespace js
             return m_ResourceInformations;
         };
 
-        inline v8::Isolate* GetIsolate() const
-        {
-            return m_Isolate;
-        }
-
-        inline EventManager& GetEventManager() const
-        {
-            return *m_Events;
-        }
-
-        inline NativeInvoker& GetNativeInvoker() const
-        {
-            return *m_NativeInvoker;
-        }
-
-        inline Scheduler& GetScheduler() const
-        {
-            return *m_Scheduler;
-        }
-
-        inline v8::Local<v8::Context> GetContext() const
-        {
-            return m_Context.Get(m_Isolate);
-        }
-
         inline fw::Logger& Log()
         {
             return *fw::Logger::Get(fmt::format("JS::{}", m_ResourceInformations->m_Name));
         }
 
-        inline ExceptionHandler& GetExceptionHandler() const
-        {
-            return *m_ExceptionHandler;
-        }
+        IMPLEMENT_GET(v8::Isolate*, Isolate, m_Isolate);
+        IMPLEMENT_GET(v8::Local<v8::Context>, Context, m_Context.Get(m_Isolate));
+
+        IMPLEMENT_GET(core::EventManager&, EventManager, *m_Events);
+        IMPLEMENT_GET(core::NativeInvoker&, NativeInvoker, *m_NativeInvoker);
+        IMPLEMENT_GET(core::Scheduler&, Scheduler, *m_Scheduler);
+        IMPLEMENT_GET(core::ExceptionHandler&, ExceptionHandler, *m_ExceptionHandler);
 
         sdk::Result OnStart() override;
         sdk::Result OnStop() override;
@@ -77,10 +62,10 @@ namespace js
 
         // extensions
         std::unique_ptr<v8::MicrotaskQueue> m_MicrotaskQueue;
-        std::unique_ptr<ExceptionHandler> m_ExceptionHandler;
-        std::unique_ptr<NativeInvoker> m_NativeInvoker;
-        std::unique_ptr<EventManager> m_Events;
-        std::unique_ptr<Scheduler> m_Scheduler;
+        std::unique_ptr<core::ExceptionHandler> m_ExceptionHandler;
+        std::unique_ptr<core::NativeInvoker> m_NativeInvoker;
+        std::unique_ptr<core::EventManager> m_Events;
+        std::unique_ptr<core::Scheduler> m_Scheduler;
 
         v8::Persistent<v8::Context> m_Context;
         std::string m_mainFilePath;

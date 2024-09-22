@@ -3,11 +3,11 @@
 #include "Resource.h"
 #include "Runtime.h"
 
-namespace js
+namespace core
 {
     void EventManager::OnCore(v8helper::FunctionContext& ctx)
     {
-        js::Resource* resource = Runtime::GetInstance()->GetResourceByContext(ctx.GetContext());
+        js::Resource* resource = js::Runtime::GetInstance()->GetResourceByContext(ctx.GetContext());
         if (!ctx.CheckArgCount(2) || resource == nullptr)
         {
             return;
@@ -27,14 +27,9 @@ namespace js
         resource->GetEventManager().RegisterEvent(EventType::CORE, eventName, callback);
     }
 
-    EventManager::EventManager(Resource* parentResource) : m_ParentResource(parentResource), m_CoreEventHandlers(), m_LocalEventHandlers(), m_RemoteEventHandlers()
+    EventManager::EventManager(js::Resource* parentResource) : m_ParentResource(parentResource), m_CoreEventHandlers(), m_LocalEventHandlers(), m_RemoteEventHandlers()
     {
         //
-    }
-
-    EventManager::~EventManager()
-    {
-        delete m_ParentResource;
     }
 
     void EventManager::RegisterEvent(EventType eventType, std::string_view eventName, v8helper::Persistent<v8::Function> callback)
@@ -70,4 +65,22 @@ namespace js
             }
         }
     }
-} // namespace js
+
+    EventManager::EventHandlers* EventManager::GetEventHandlersFromType(EventType eventType)
+    {
+        switch (eventType)
+        {
+        case EventType::CORE:
+            return &m_CoreEventHandlers;
+
+        case EventType::LOCAL:
+            return &m_LocalEventHandlers;
+
+        case EventType::REMOTE:
+            return &m_RemoteEventHandlers;
+
+        default:
+            return nullptr;
+        }
+    }
+} // namespace core

@@ -56,7 +56,7 @@ namespace js
 
         for (Resource* resource : runtime->GetResources())
         {
-            resource->GetEventManager().DispatchEvent(EventType::CORE, ev->eventName, v8Args);
+            resource->GetEventManager().DispatchEvent(core::EventType::CORE, ev->eventName, v8Args);
         }
     }
 
@@ -90,7 +90,7 @@ namespace js
         m_Isolate->SetFatalErrorHandler(OnFatalError);
         m_Isolate->SetOOMErrorHandler(OnHeapOOM);
         m_Isolate->AddNearHeapLimitCallback(OnNearHeapLimit, nullptr);
-        m_Isolate->SetPromiseRejectCallback(ExceptionHandler::OnPromiseRejected);
+        m_Isolate->SetPromiseRejectCallback(core::ExceptionHandler::OnPromiseRejected);
         // m_Isolate->SetHostImportModuleDynamicallyCallback(ImportModuleDynamically);
         // m_Isolate->SetHostInitializeImportMetaObjectCallback(InitializeImportMetaObject);
         m_Isolate->AddMessageListener(MessageListener);

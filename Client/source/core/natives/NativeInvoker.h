@@ -12,24 +12,27 @@ namespace js
     class Resource;
 }
 
-class NativeInvoker
+namespace core
 {
-private:
-    using Ctx = v8helper::FunctionContext;
-    using Invoker = sdk::IInvokerFactory;
+    class NativeInvoker
+    {
+    private:
+        using Ctx = v8helper::FunctionContext;
+        using Invoker = sdk::IInvokerFactory;
 
-public:
-    static void Invoke(const v8::FunctionCallbackInfo<v8::Value>& _info);
+    public:
+        static void Invoke(const v8::FunctionCallbackInfo<v8::Value>& _info);
 
-    NativeInvoker(js::Resource* parentResource);
+        NativeInvoker(js::Resource* parentResource);
 
-    STRONG_INLINE bool TryToPushArguments(Ctx& ctx, Invoker* invoker, sdk::NativeInformation* native);
-    STRONG_INLINE void TryToReturnValue(Ctx& ctx, Invoker* invoker, uint8_t type);
+        STRONG_INLINE bool TryToPushArguments(Ctx& ctx, Invoker* invoker, sdk::NativeInformation* native);
+        STRONG_INLINE void TryToReturnValue(Ctx& ctx, Invoker* invoker, uint8_t type);
 
-private:
-    js::Resource* m_ParentResource;
+    private:
+        js::Resource* m_ParentResource;
 
-    // TODO: replace 7 with enum max value
-    void (*m_PushArgumentMapping[7])(Ctx& ctx, Invoker* invoker, uint32_t index);
-    void (*m_ReturnValueMapping[7])(Ctx& ctx, Invoker* invoker);
-};
+        // TODO: replace 7 with enum max value
+        void (*m_PushArgumentMapping[7])(Ctx& ctx, Invoker* invoker, uint32_t index);
+        void (*m_ReturnValueMapping[7])(Ctx& ctx, Invoker* invoker);
+    };
+} // namespace core
