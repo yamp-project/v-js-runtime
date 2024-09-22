@@ -19,6 +19,7 @@ namespace js
     {
     public:
         Resource(v8::Isolate* isolate, sdk::ResourceInformation* infos, bool isTypescript);
+        ~Resource();
 
         // TODO: rename with the plural form
         inline sdk::ResourceInformation* GetResourceInformation() override

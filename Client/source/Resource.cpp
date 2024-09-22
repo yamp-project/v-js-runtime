@@ -38,6 +38,11 @@ namespace js
         SetupGlobals();
     }
 
+    Resource::~Resource()
+    {
+        m_Context.Reset();
+    }
+
     void Resource::SetupContext()
     {
         v8helper::Namespace::Initialize(m_Isolate);
