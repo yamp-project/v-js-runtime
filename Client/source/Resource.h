@@ -3,7 +3,6 @@
 #include "Timers.h"
 #include "stdafx.h"
 
-#include <v8-microtask-queue.h>
 #include <v-sdk/Resource.hpp>
 #include <fw/Logger.h>
 #include <memory>
@@ -16,21 +15,10 @@ namespace js
     class ResourceScheduler;
     class EventManager;
 
-    class Resource : public sdk::IResourceBase, public v8helper::IModuleHandler
+    class Resource : public sdk::IResourceBase
     {
     public:
         Resource(v8::Isolate* isolate, sdk::ResourceInformation* infos, bool isTypescript);
-
-        std::string ResolvePath(v8::Local<v8::Context> context, const std::string& path, const std::string& referrer) override
-        {
-            Log().Info("path {} referrer {}", path, referrer);
-            return "";
-        }
-
-        std::vector<uint8_t> ReadFile(v8::Local<v8::Context> context, const std::string& path) override
-        {
-            return std::vector<uint8_t>();
-        }
 
         // TODO: rename with the plural form
         inline sdk::ResourceInformation* GetResourceInformation() override
@@ -80,18 +68,17 @@ namespace js
         v8::Isolate* m_Isolate;
 
         // extensions
+        std::unique_ptr<v8::MicrotaskQueue> m_MicrotaskQueue;
         std::unique_ptr<ExceptionHandler> m_ExceptionHandler;
         std::unique_ptr<ResourceScheduler> m_Scheduler;
         std::unique_ptr<EventManager> m_Events;
 
-        std::unique_ptr<v8::MicrotaskQueue> m_MicrotaskQueue;
         v8::Persistent<v8::Context> m_Context;
         std::string m_mainFilePath;
 
         void SetupContext();
         void SetupGlobals();
 
-        std::optional<std::string> ReadTsFile(std::string_view filePath);
         bool RunCode(std::string_view jsFilePath);
         void RegisterNatives();
     };

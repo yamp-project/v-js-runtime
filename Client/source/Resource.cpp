@@ -61,23 +61,6 @@ namespace js
         global.SetMethod("print", bindings::global::Print);
     }
 
-    std::optional<std::string> Resource::ReadTsFile(std::string_view filePath)
-    {
-        // TODO: get the path from the client
-        const char* commandLine[] = {
-            "D:/.yamp/v-client/bin/runtimes/esbuild.exe", "D:/.yamp/v-client/bin/resources/js_test/main.ts", "--bundle", "--format=esm", "--platform=browser", "--external:@yamp/client", NULL};
-        subprocess_s process;
-
-        int8_t options = subprocess_option_combined_stdout_stderr | subprocess_option_no_window;
-        int32_t result = subprocess_create(commandLine, options, &process);
-        if (result != 0)
-        {
-            return std::nullopt;
-        }
-
-        return io::ReadFilePipe(subprocess_stdout(&process));
-    }
-
     void Resource::RegisterNatives()
     {
         sdk::INativeReflectionFactory* nativeReflectionFactory = sdk::INativeReflectionFactory::GetInstance();
@@ -96,7 +79,7 @@ namespace js
 
     bool Resource::RunCode(std::string_view filePath)
     {
-        std::optional<std::string> result = m_IsTypescript ? ReadTsFile(filePath) : io::ReadFile(filePath);
+        std::optional<std::string> result = io::ReadFile(filePath, m_IsTypescript);
         if (!result)
         {
             Log().Error("Failed to read file: {}", filePath);
@@ -104,6 +87,7 @@ namespace js
         }
 
         v8::TryCatch tryCatch(m_Isolate);
+
         v8::ScriptOrigin origin{m_Isolate, v8helper::String(m_ResourceInformations->m_Name), 0, 0, false, 0, v8::Local<v8::Value>(), false, false, true, v8::Local<v8::PrimitiveArray>()};
         v8::ScriptCompiler::Source compilerSource{v8helper::String(*result), origin};
         v8::MaybeLocal<v8::Module> maybeModule = v8::ScriptCompiler::CompileModule(m_Isolate, &compilerSource);
