@@ -24,7 +24,7 @@ namespace js
         }
 
         auto callback = v8helper::Persistent<v8::Function>(isolate, v8::Local<v8::Function>::Cast(callbackValue));
-        resource->GetEventManager()->RegisterEvent(EventType::CORE, eventName, callback);
+        resource->GetEventManager().RegisterEvent(EventType::CORE, eventName, callback);
     }
 
     EventManager::EventManager(Resource* resource) : m_ParentResource(resource), m_CoreEventHandlers(), m_LocalEventHandlers(), m_RemoteEventHandlers()
@@ -62,7 +62,7 @@ namespace js
         if (map != nullptr && map->contains(eventName.data()))
         {
             v8::Isolate* isolate = m_ParentResource->GetIsolate();
-            v8::Local<v8::Context> context = m_ParentResource->GetContext().Get(isolate);
+            v8::Local<v8::Context> context = m_ParentResource->GetContext();
 
             for (auto callback : map->at(eventName.data()))
             {

@@ -39,6 +39,6 @@ namespace js
         int32_t delay = ctx.GetArg<int32_t>(1);
 
         TimerExpiry expiry = std::chrono::steady_clock::now() + std::chrono::milliseconds(delay);
-        resource->GetScheduler()->RegisterTimer(expiry, {callback, delay, type});
+        resource->GetScheduler().RegisterTimer(expiry, {callback, delay, type});
     }
 } // namespace js

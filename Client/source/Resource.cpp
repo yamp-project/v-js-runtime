@@ -7,6 +7,7 @@
 #include "natives/NativesWrapper.h"
 #include "events/EventManager.h"
 #include "ResourceScheduler.h"
+#include "ExceptionHandler.h"
 #include "bindings/globals.h"
 
 static v8::MaybeLocal<v8::Module> DefaultImportCallback(v8::Local<v8::Context>, v8::Local<v8::String>, v8::Local<v8::FixedArray>, v8::Local<v8::Module>)
@@ -16,9 +17,9 @@ static v8::MaybeLocal<v8::Module> DefaultImportCallback(v8::Local<v8::Context>, 
 
 namespace js
 {
-    // TODO: see with others how we should handle the lifetime of the event manager (unique_ptr, manual)
     Resource::Resource(v8::Isolate* isolate, sdk::ResourceInformation* infos, bool isTypescript)
-        : m_Isolate(isolate), m_ResourceInformations(infos), m_IsTypescript(isTypescript), m_State(false), m_Scheduler(new ResourceScheduler(this)), m_Events(new EventManager(this))
+        : m_Isolate(isolate), m_ResourceInformations(infos), m_IsTypescript(isTypescript), m_State(false), m_ExceptionHandler(std::make_unique<ExceptionHandler>(this)),
+          m_Scheduler(std::make_unique<ResourceScheduler>(this)), m_Events(std::make_unique<EventManager>(this))
     {
         std::filesystem::path resourcePath = infos->m_Path;
         m_mainFilePath = (resourcePath / infos->m_MainFile).string();
@@ -34,12 +35,6 @@ namespace js
 
         RegisterNatives();
         SetupGlobals();
-    }
-
-    Resource::~Resource()
-    {
-        delete m_Scheduler;
-        delete m_Events;
     }
 
     void Resource::SetupContext()
@@ -192,11 +187,11 @@ namespace js
 
     sdk::Result Resource::OnTick()
     {
-        V8_SCOPE(m_Isolate);
-
         if (m_State)
         {
+            V8_SCOPE(m_Isolate);
             m_MicrotaskQueue->PerformCheckpoint(m_Isolate);
+            m_ExceptionHandler->ProcessExceptions();
             m_Scheduler->ProcessTimers();
         }
 

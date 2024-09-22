@@ -1,6 +1,7 @@
 #include "ResourceScheduler.h"
 
 #include "Resource.h"
+#include "fw/Logger.h"
 #include "stdafx.h"
 
 namespace js
@@ -15,7 +16,7 @@ namespace js
         auto now = std::chrono::steady_clock::now();
         v8::Isolate* isolate = m_ParentResource->GetIsolate();
 
-        auto context = m_ParentResource->GetContext().Get(isolate);
+        v8::Local<v8::Context> context = m_ParentResource->GetContext();
         auto hint = m_Timers.end();
         m_ExpiredTimers.clear();
 

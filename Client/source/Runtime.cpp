@@ -1,5 +1,6 @@
 #include "Runtime.h"
 
+#include "ExceptionHandler.h"
 #include "events/EventManager.h"
 #include "helpers/misc.h"
 #include "Resource.h"
@@ -55,7 +56,7 @@ namespace js
 
         for (Resource* resource : runtime->GetResources())
         {
-            resource->GetEventManager()->DispatchEvent(EventType::CORE, ev->eventName, v8Args);
+            resource->GetEventManager().DispatchEvent(EventType::CORE, ev->eventName, v8Args);
         }
     }
 
@@ -89,7 +90,7 @@ namespace js
         m_Isolate->SetFatalErrorHandler(OnFatalError);
         m_Isolate->SetOOMErrorHandler(OnHeapOOM);
         m_Isolate->AddNearHeapLimitCallback(OnNearHeapLimit, nullptr);
-        // m_Isolate->SetPromiseRejectCallback(v8helper::IExceptionHandler::OnPromiseRejected);
+        m_Isolate->SetPromiseRejectCallback(ExceptionHandler::OnPromiseRejected);
         // m_Isolate->SetHostImportModuleDynamicallyCallback(ImportModuleDynamically);
         // m_Isolate->SetHostInitializeImportMetaObjectCallback(InitializeImportMetaObject);
         m_Isolate->AddMessageListener(MessageListener);
@@ -155,11 +156,11 @@ namespace js
         return {true};
     }
 
-    Resource* Runtime::GetResourceByContext(v8::Local<v8::Context> context) const
+    Resource* Runtime::GetResourceByContext(const v8::Local<v8::Context>& context) const
     {
         for (auto resource : m_Resources)
         {
-            if (resource->GetContext().Get(m_Isolate) == context)
+            if (resource->GetContext() == context)
             {
                 return resource;
             }
@@ -188,17 +189,5 @@ namespace js
     void Runtime::OnFatalError(const char* location, const char* message)
     {
         Runtime::GetInstance()->Log().Error("V8 fatal error! {} {}", location, message);
-    }
-
-    void Runtime::OnPromiseRejected(v8::PromiseRejectMessage message)
-    {
-        v8::Isolate* isolate = v8::Isolate::GetCurrent();
-        v8::Local<v8::Context> ctx = isolate->GetEnteredOrMicrotaskContext();
-
-        Runtime* runtime = Runtime::GetInstance();
-        if (Resource* resource = runtime->GetResourceByContext(ctx))
-        {
-            resource->OnPromiseRejected(message);
-        }
     }
 } // namespace js

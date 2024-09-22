@@ -13,13 +13,14 @@ namespace js
 {
     namespace sdk = yamp::sdk;
 
+    class ExceptionHandler;
     class ResourceScheduler;
     class EventManager;
-    class Resource : public sdk::IResourceBase, public v8helper::IModuleHandler, public v8helper::IExceptionHandler
+
+    class Resource : public sdk::IResourceBase, public v8helper::IModuleHandler
     {
     public:
         Resource(v8::Isolate* isolate, sdk::ResourceInformation* infos, bool isTypescript);
-        virtual ~Resource();
 
         std::string ResolvePath(v8::Local<v8::Context> context, const std::string& path, const std::string& referrer) override
         {
@@ -32,45 +33,40 @@ namespace js
             return std::vector<uint8_t>();
         }
 
-        void HandleEvent(ExceptionEvent event, std::string_view rejectionMessage) override
-        {
-            Log().Warn("HandleEvent {}", rejectionMessage);
-        }
-
-        void HandleRejection(PromiseRejection& rejection) override
-        {
-            Log().Warn("HandleRejection {}", rejection.GetRejectionMessage());
-        }
-
         // TODO: rename with the plural form
-        [[nodiscard]] inline sdk::ResourceInformation* GetResourceInformation() override
+        inline sdk::ResourceInformation* GetResourceInformation() override
         {
             return m_ResourceInformations;
         };
 
-        [[nodiscard]] inline v8::Isolate* GetIsolate() const
+        inline v8::Isolate* GetIsolate() const
         {
             return m_Isolate;
         }
 
-        [[nodiscard]] inline EventManager* GetEventManager() const
+        inline EventManager& GetEventManager() const
         {
-            return m_Events;
+            return *m_Events;
         }
 
-        [[nodiscard]] inline ResourceScheduler* GetScheduler() const
+        inline ResourceScheduler& GetScheduler() const
         {
-            return m_Scheduler;
+            return *m_Scheduler;
         }
 
-        [[nodiscard]] inline v8helper::Persistent<v8::Context> GetContext() const
+        inline v8::Local<v8::Context> GetContext() const
         {
-            return m_Context;
+            return m_Context.Get(m_Isolate);
         }
 
-        [[nodiscard]] inline fw::Logger& Log()
+        inline fw::Logger& Log()
         {
             return *fw::Logger::Get(fmt::format("JS::{}", m_ResourceInformations->m_Name));
+        }
+
+        inline ExceptionHandler& GetExceptionHandler() const
+        {
+            return *m_ExceptionHandler;
         }
 
         sdk::Result OnStart() override;
@@ -83,8 +79,11 @@ namespace js
         bool m_State;
 
         v8::Isolate* m_Isolate;
-        ResourceScheduler* m_Scheduler;
-        EventManager* m_Events;
+
+        // extensions
+        std::unique_ptr<ExceptionHandler> m_ExceptionHandler;
+        std::unique_ptr<ResourceScheduler> m_Scheduler;
+        std::unique_ptr<EventManager> m_Events;
 
         std::unique_ptr<v8::MicrotaskQueue> m_MicrotaskQueue;
         v8helper::Persistent<v8::Context> m_Context;

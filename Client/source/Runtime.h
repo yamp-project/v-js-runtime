@@ -47,13 +47,13 @@ namespace js
 
         sdk::Result OnHandleResourceLoad(sdk::ResourceInformation* Information) override;
 
-        [[nodiscard]] Resource* GetResourceByContext(v8::Local<v8::Context> context) const;
-        [[nodiscard]] inline std::vector<Resource*>& GetResources()
+        Resource* GetResourceByContext(const v8::Local<v8::Context>& context) const;
+        inline std::vector<Resource*>& GetResources()
         {
             return m_Resources;
         }
 
-        [[nodiscard]] inline v8::Isolate* GetIsolate() const
+        inline v8::Isolate* GetIsolate() const
         {
             return m_Isolate;
         }
