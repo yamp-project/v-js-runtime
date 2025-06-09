@@ -5,14 +5,11 @@
 #include <yamp-sdk/sdk.h>
 #include <yamp-sdk/version.h>
 
-void RuntimeEntry(RegisterRuntime* registerRuntimeFn)
+void RuntimeEntry(RegisterRuntime registerRuntime)
 {
-    IScriptRuntime runtime;
-    if (!registerRuntimeFn("js", &runtime))
-        return;
-
+    IScriptRuntime* runtime = registerRuntime("js");
     yamp::js::ScriptRuntime::SetScriptRuntimeInstance(runtime);
-    runtime.GetLogger()->Debug("ModuleInit()");    
+    runtime->GetLogger()->Debug("RuntimeEntry()");    
 }
 
 const char* GetSdkVersion()
