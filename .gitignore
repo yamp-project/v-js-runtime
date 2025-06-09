@@ -1,3 +1,5 @@
 build/
 .xmake/
 vsxmake2022/
+
+shared/src/version.h
