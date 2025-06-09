@@ -1,0 +1,1 @@
+#define YAMP_MODULE_VERSION "1a58864"
