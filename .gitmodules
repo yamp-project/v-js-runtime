@@ -1,6 +1,0 @@
-[submodule "Vendors/libv8"]
-	path = Vendors/libv8
-	url = git@github.com:yamp-project/libv8.git
-[submodule "Vendors/framework"]
-	path = Vendors/framework
-	url = git@github.com:yamp-project/framework.git
