@@ -1,23 +1,26 @@
 
-#include "ScriptRuntime.h"
+#include "script_runtime.h"
 #include "version.h"
 
-#include <yamp-sdk/sdk.h>
 #include <yamp-sdk/version.h>
+#include <yamp-sdk/sdk.h>
 
-void RuntimeEntry(RegisterRuntime registerRuntime)
+SDK_EXPORT void RuntimeEntry(RegisterRuntime registerRuntime)
 {
-    IScriptRuntime* runtime = registerRuntime("js");
-    yamp::js::ScriptRuntime::SetScriptRuntimeInstance(runtime);
-    runtime->GetLogger()->Debug("RuntimeEntry()");    
-}
+    yamp::js::ScriptRuntime* runtime = yamp::js::ScriptRuntime::GetInstance();
 
-const char* GetSdkVersion()
-{
-    return YAMP_SDK_VERSION;
-}
+    runtime->SetupLookupTable(registerRuntime("js", {
+        .sdkVersion = YAMP_SDK_VERSION,
+        .version = YAMP_RUNTIME_VERSION,
 
-const char* GetModuleVersion()
-{
-    return YAMP_MODULE_VERSION;
+        .Init = yamp::js::Init,
+        .BeforeShutdown = yamp::js::BeforeShutdown,
+        .OnResourceStart = yamp::js::OnResourceStart,
+        .OnResourceStop = yamp::js::OnResourceStop,
+
+        .OnTick = yamp::js::OnTick,
+        .OnEvent = yamp::js::OnEvent
+    }));
+
+    runtime->GetLogger()->Info("hello there from JS !\n");
 }
