@@ -10,15 +10,16 @@ SDK_EXPORT void RuntimeEntry(RegisterRuntime registerRuntime)
     yamp::js::ScriptRuntime* runtime = yamp::js::ScriptRuntime::GetInstance();
 
     runtime->SetupLookupTable(registerRuntime("js", {
-        .sdkVersion = YAMP_SDK_VERSION,
         .version = YAMP_RUNTIME_VERSION,
+        .sdkVersion = YAMP_SDK_VERSION,
 
         .Init = yamp::js::Init,
-        .BeforeShutdown = yamp::js::BeforeShutdown,
-        .OnResourceStart = yamp::js::OnResourceStart,
-        .OnResourceStop = yamp::js::OnResourceStop,
+        .Shutdown = yamp::js::Shutdown,
 
-        .OnTick = yamp::js::OnTick,
+        .OnResourceStart = yamp::js::OnResourceStart,
+        .OnResourceStop  = yamp::js::OnResourceStop,
+
+        .OnTick  = yamp::js::OnTick,
         .OnEvent = yamp::js::OnEvent
     }));
 

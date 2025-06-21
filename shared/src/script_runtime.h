@@ -6,10 +6,11 @@
 namespace yamp::js
 {
     bool Init();
-    void BeforeShutdown();
+    void Shutdown();
 
     void OnResourceStart(IResource* resource);
     void OnResourceStop(IResource* resource);
+
     void OnTick();
     void OnEvent(void* event);
 

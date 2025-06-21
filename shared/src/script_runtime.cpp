@@ -10,7 +10,7 @@ namespace yamp::js
         return true;
     }
 
-    void BeforeShutdown()
+    void Shutdown()
     {
         ScriptRuntime::GetInstance()->GetLogger()->Debug("ScriptRuntime::BeforeShutdown()");
     }
