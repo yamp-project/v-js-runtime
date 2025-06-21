@@ -1,5 +1,7 @@
-build/
+.vscode/
 .xmake/
+
+build/
 vsxmake2022/
 
 shared/src/version.h
