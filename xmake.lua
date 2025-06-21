@@ -41,7 +41,7 @@ target("shared")
             return
         end
 
-        io.writefile("shared/src/version.h", "#define YAMP_MODULE_VERSION \"" .. string.trim(out) .. "\"")
+        io.writefile("shared/src/version.h", "#define YAMP_RUNTIME_VERSION \"" .. string.trim(out) .. "\"")
     end)
 
 target("server")
