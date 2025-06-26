@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace yamp::js
+namespace js
 {
     bool Init()
     {

@@ -3,14 +3,13 @@
 #include <yamp-sdk/sdk.h>
 #include <assert.h>
 
-namespace yamp::js
+namespace js
 {
     bool Init();
     void Shutdown();
 
     void OnResourceStart(IResource* resource);
     void OnResourceStop(IResource* resource);
-
     void OnTick();
     void OnEvent(void* event);
 
