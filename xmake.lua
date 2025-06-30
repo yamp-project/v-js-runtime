@@ -6,7 +6,7 @@ add_rules("mode.debug", "mode.release")
 if is_os("windows") then
     add_toolchains("msvc")
 elseif is_os("linux") then
-    add_toolchains("gcc")
+    add_toolchains("clang")
 end
 
 option("static-client")
