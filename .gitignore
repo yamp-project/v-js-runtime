@@ -1,7 +1,11 @@
 .vscode/
 .xmake/
 
+.idea/
+
 build/
 vsxmake2022/
+
+CMakeLists.txt
 
 shared/src/version.h
