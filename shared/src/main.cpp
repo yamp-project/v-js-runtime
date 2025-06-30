@@ -27,5 +27,5 @@ SDK_EXPORT void RuntimeEntry(RegisterRuntime registerRuntime)
 {
     js::ScriptRuntime* runtime = js::ScriptRuntime::GetInstance();
     runtime->SetupLookupTable(registerRuntime("js", GetRuntimeContext()));
-    runtime->GetLogger()->Info("hello there from JS !\n");
+    //runtime->GetLogger()->Info("hello there from JS !\n");
 }

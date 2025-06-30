@@ -28,11 +28,11 @@ namespace js
             m_LookupTable = lookupTable;
         }
 
-        ILogger* GetLogger()
+        /*ILogger* GetLogger()
         {
             assert(m_LookupTable != nullptr);
             return m_LookupTable->GetLogger();
-        }
+        }*/
 
     private:
         ILookupTable* m_LookupTable = nullptr;
