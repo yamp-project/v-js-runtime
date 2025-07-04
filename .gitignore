@@ -3,9 +3,14 @@
 
 .idea/
 
+.clangd
+
 build/
 vsxmake2022/
 
 CMakeLists.txt
 
 shared/src/version.h
+
+vendors/depot_tools
+vendors/v8
