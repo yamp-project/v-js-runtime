@@ -4,10 +4,12 @@ set_languages("cxx23")
 add_rules("mode.debug", "mode.release")
 
 if is_os("windows") then
-    add_toolchains("msvc")
+    set_toolchains("msvc")
 elseif is_os("linux") then
-    add_toolchains("clang")
+    set_toolchains("clang", "gcc")
 end
+
+includes("package/depot_tools", "package/v8")
 
 option("static-client")
     set_description("Build static client library")
@@ -69,11 +71,14 @@ target("client")
         add_defines("YAMP_SHARED")
     end
 
+    add_deps("v8")
+
     add_files("client/src/**.cpp", "shared/src/**.cpp")
     add_headerfiles("client/src/**.h")
     add_includedirs(
         "shared/src", "client/src",
-        "vendors", "vendors/yamp-sdk"
+        "vendors", "vendors/yamp-sdk",
+        "vendors", "vendors/v8/include"
     )
 
     add_deps("shared")
