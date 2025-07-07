@@ -99,8 +99,8 @@ else ()
     message(STATUS "Updating v8")
 
     execute_process(
-            COMMAND "git" "checkout" "-B" "origin/${RUNTIME_V8_TAG}"
-            COMMAND "git" "pull" "origin/${RUNTIME_V8_TAG}"
+            COMMAND "git" "checkout" "-B" "origin" "${RUNTIME_V8_TAG}"
+            COMMAND "git" "pull" "origin" "main"
             COMMAND "${RUNTIME_DEPOT_TOOLS_LOCATION}/gclient" "sync"
             WORKING_DIRECTORY ${RUNTIME_V8_LOCATION}
     )
