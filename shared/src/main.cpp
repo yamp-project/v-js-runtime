@@ -1,4 +1,3 @@
-
 #include "script_runtime.h"
 #include "version.h"
 
