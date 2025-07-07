@@ -107,7 +107,7 @@ else ()
 endif ()
 
 # V8 build process
-option(BUILD_V8 "Build V8 Javascript engine" OFF)
+option(BUILD_V8 "Build V8 Javascript engine" ON)
 
 if (${BUILD_V8})
     message(STATUS "Building V8")
