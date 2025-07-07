@@ -2,15 +2,21 @@
 .xmake/
 
 .idea/
+cmake-*-*/
 
 .clangd
 
 build/
 vsxmake2022/
 
-CMakeLists.txt
-
 shared/src/version.h
+
+.gclient
+.gcs_entries
+.gclient_entries
+.cipd
+.gclient_previous_sync_commits
+
 
 vendors/depot_tools
 vendors/v8
