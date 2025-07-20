@@ -1,4 +1,4 @@
-project("v-js-runtime-client" CXX)
+project("v-js-runtime-client")
 
 file(GLOB_RECURSE PROJECT_SOURCE_FILES "src/*.h" "src/*.cpp")
 
