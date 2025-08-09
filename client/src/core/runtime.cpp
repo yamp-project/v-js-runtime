@@ -55,18 +55,6 @@ namespace js
         //
     }
 
-    /**void OnEvent(CoreEvent event)
-    {
-        Runtime* runtime = Runtime::GetInstance();
-        runtime->GetLogger().Info("Event triggered %s", event.type);
-
-        for (const auto& val : runtime->GetResources() | std::views::values)
-        {
-            val->OnEvent(event);
-        }
-    }
-    **/
-
     void OnCoreEvent(CoreEventType type, CAnyArray* args)
     {
         Runtime* runtime = Runtime::GetInstance();
