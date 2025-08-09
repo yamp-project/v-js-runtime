@@ -12,7 +12,8 @@ namespace js {
         void OnStart();
         void OnStop();
         void OnTick();
-        //void OnEvent(CoreEvent event);
+        void OnEvent(CoreEventType type, CAnyArray* args);
+        void OnEvent(const char* name, CAnyArray* args);
 
         Resource(ILookupTable* lookupTable, IResource* resource, v8::Isolate* isolate);
         ~Resource() = default;
