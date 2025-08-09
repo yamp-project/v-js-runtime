@@ -69,10 +69,24 @@ namespace js
 
     void OnCoreEvent(CoreEventType type, CAnyArray* args)
     {
+        Runtime* runtime = Runtime::GetInstance();
+        runtime->GetLogger().Info("Event triggered %s", type);
+
+        for (const auto& val : runtime->GetResources() | std::views::values)
+        {
+            val->OnEvent(type, args);
+        }
     }
 
     void OnResourceEvent(const char* name, CAnyArray* args)
     {
+        Runtime* runtime = Runtime::GetInstance();
+        runtime->GetLogger().Info("Event triggered %s", name);
+
+        for (const auto& val : runtime->GetResources() | std::views::values)
+        {
+            val->OnEvent(name, args);
+        }
     }
 
     void SetupGlobals()
@@ -81,7 +95,7 @@ namespace js
 
     void ShutdownV8()
     {
-        for (auto isolate : Runtime::GetInstance()->GetIsolates())
+        for (auto& isolate : Runtime::GetInstance()->GetIsolates())
         {
             isolate->Dispose();
             isolate.release();
