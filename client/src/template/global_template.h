@@ -10,10 +10,12 @@ namespace js::global {
         ~GlobalTemplate();
 
         v8::Local<v8::ObjectTemplate> GetGlobalTemplate();
+
+        Logger* GetLogger() const {
+            return m_Logger;
+        }
     private:
         v8::Local<v8::ObjectTemplate> m_Template;
-
-        static void LogCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
 
         v8::Isolate* m_Isolate;
         Logger* m_Logger;
