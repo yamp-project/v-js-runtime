@@ -2,7 +2,7 @@
 #define V8_LOGFUNCTION_H
 #include "../global_template.h"
 
-namespace js::function {
+namespace js::templates {
     class LogFunction final {
     public:
         static std::string FunctionName() {

@@ -18,8 +18,8 @@ namespace js::global {
 
         // Temporary log function
         m_Template->Set(
-            utils::StringToV8(m_Isolate, function::LogFunction::FunctionName()),
-            v8::FunctionTemplate::New(m_Isolate, function::LogFunction::Callback, externalRef)
+            utils::StringToV8(m_Isolate, templates::LogFunction::FunctionName()),
+            v8::FunctionTemplate::New(m_Isolate, templates::LogFunction::Callback, externalRef)
         );
 
         return m_Template;
