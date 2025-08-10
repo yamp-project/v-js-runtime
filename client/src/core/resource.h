@@ -24,6 +24,18 @@ namespace js {
             return m_Resource->path;
         }
 
+        v8::MaybeLocal<v8::Module> GetProcessedModule(const std::string &specifier) {
+            if (m_ProcessedModules.contains(specifier)) {
+                return m_ProcessedModules[specifier].Get(m_Isolate);
+            }
+
+            return {};
+        }
+
+        void AddProcessedModule(const std::string &specifier, v8::Local<v8::Module> module) {
+            m_ProcessedModules[specifier].Reset(m_Isolate, module);
+        }
+
     private:
         static v8::MaybeLocal<v8::Module> ResolveCallback(v8::Local<v8::Context> context,
                                                 v8::Local<v8::String> specifier,
