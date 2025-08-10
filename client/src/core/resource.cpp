@@ -2,6 +2,7 @@
 
 #include <filesystem>
 
+#include "../template/global_template.h"
 #include "util/utils.h"
 
 namespace js {
@@ -16,7 +17,7 @@ namespace js {
 
         v8::Isolate::Scope scope(m_Isolate);
         v8::HandleScope handleScope(m_Isolate);
-        v8::Local<v8::Context> context = v8::Context::New(m_Isolate);
+        v8::Local<v8::Context> context = v8::Context::New(m_Isolate, nullptr);
 
         context->SetAlignedPointerInEmbedderData(1, this);
 
@@ -91,7 +92,7 @@ namespace js {
             specifierStr = specifierStr.substr(1);
         }
 
-        std::string src = utils::ReadFile(resourcePath  + specifierStr);
+        const std::string src = utils::ReadFile(resourcePath  + specifierStr);
         if (src.empty()) {
             return {};
         }

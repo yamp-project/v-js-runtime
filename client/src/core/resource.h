@@ -48,6 +48,7 @@ namespace js {
         Logger m_Logger;
 
         v8::Isolate* m_Isolate;
+        v8::Local<v8::ObjectTemplate> m_GlobalTemplate;
     };
 } // js
 

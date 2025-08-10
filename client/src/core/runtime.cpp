@@ -77,10 +77,6 @@ namespace js
         }
     }
 
-    void SetupGlobals()
-    {
-    }
-
     void ShutdownV8()
     {
         for (auto& isolate : Runtime::GetInstance()->GetIsolates())

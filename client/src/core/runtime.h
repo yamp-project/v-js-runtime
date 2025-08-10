@@ -19,7 +19,6 @@ namespace js
     void OnCoreEvent(CoreEventType type, CAnyArray* args);
     void OnResourceEvent(const char* name, CAnyArray* args);
 
-    void SetupGlobals();
     void ShutdownV8();
 
     class Runtime
