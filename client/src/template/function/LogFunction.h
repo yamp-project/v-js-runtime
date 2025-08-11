@@ -1,6 +1,8 @@
 #ifndef V8_LOGFUNCTION_H
 #define V8_LOGFUNCTION_H
+
 #include "../global_template.h"
+#include <v8.h>
 
 namespace js::templates {
     class LogFunction final {
