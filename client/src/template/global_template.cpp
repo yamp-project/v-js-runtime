@@ -1,6 +1,7 @@
 #include "global_template.h"
 
 #include "function/LogFunction.h"
+#include "object/LogClass.h"
 #include "util/utils.h"
 
 namespace js::global {
@@ -18,8 +19,20 @@ namespace js::global {
 
         // Temporary log function
         m_Template->Set(
-            utils::StringToV8(m_Isolate, templates::LogFunction::FunctionName()),
+            utils::StringToV8(m_Isolate, templates::LogFunction::Name()),
             v8::FunctionTemplate::New(m_Isolate, templates::LogFunction::Callback, externalRef)
+        );
+
+        // Temporary log class
+        v8::Local<v8::ObjectTemplate> objectTemplate = templates::LogClass::CreateTemplate(m_Isolate);
+
+        v8::Local<v8::Object> loggerObject = objectTemplate->NewInstance(m_Isolate->GetCurrentContext()).ToLocalChecked();
+
+        loggerObject->SetInternalField(0, v8::External::New(m_Isolate, m_Logger));
+
+        m_Template->Set(
+            utils::StringToV8(m_Isolate, templates::LogClass::Name()),
+            loggerObject
         );
 
         return m_Template;
