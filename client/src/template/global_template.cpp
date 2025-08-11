@@ -21,6 +21,10 @@ namespace js::templates {
             v8::FunctionTemplate::New(m_Isolate, LogFunction::Callback, v8::External::New(m_Isolate, m_Logger))
         );
 
+        // yamp object
+        v8::Local<v8::ObjectTemplate> yampTemplate = v8::ObjectTemplate::New(m_Isolate);
+        v8::Local<v8::Object> yampObject = yampTemplate->NewInstance(m_Isolate->GetCurrentContext()).ToLocalChecked();
+
         // Resource class
         v8::Local<v8::ObjectTemplate> objectTemplate = ResourceClass::CreateTemplate(m_Isolate);
 
@@ -28,9 +32,15 @@ namespace js::templates {
 
         resourceObject->SetInternalField(0, v8::External::New(m_Isolate, m_Resource));
 
-        m_Template->Set(
+        yampObject->Set(
+            m_Isolate->GetCurrentContext(),
             utils::StringToV8(m_Isolate, ResourceClass::Name()),
             resourceObject
+        );
+
+        m_Template->Set(
+            utils::StringToV8(m_Isolate, "yamp"),
+            yampObject
         );
 
         return m_Template;
