@@ -15,12 +15,12 @@ namespace js::global {
         v8::HandleScope handleScope(m_Isolate);
         m_Template = v8::ObjectTemplate::New(m_Isolate);
 
-        v8::Local<v8::External> externalRef = v8::External::New(m_Isolate, this);
+        v8::Local<v8::External> loggerRef = v8::External::New(m_Isolate, m_Logger);
 
         // Temporary log function
         m_Template->Set(
             utils::StringToV8(m_Isolate, templates::LogFunction::Name()),
-            v8::FunctionTemplate::New(m_Isolate, templates::LogFunction::Callback, externalRef)
+            v8::FunctionTemplate::New(m_Isolate, templates::LogFunction::Callback, loggerRef)
         );
 
         // Temporary log class
@@ -28,7 +28,7 @@ namespace js::global {
 
         v8::Local<v8::Object> loggerObject = objectTemplate->NewInstance(m_Isolate->GetCurrentContext()).ToLocalChecked();
 
-        loggerObject->SetInternalField(0, v8::External::New(m_Isolate, m_Logger));
+        loggerObject->SetInternalField(0, loggerRef);
 
         m_Template->Set(
             utils::StringToV8(m_Isolate, templates::LogClass::Name()),

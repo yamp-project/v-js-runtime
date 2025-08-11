@@ -12,12 +12,14 @@ namespace js::templates {
         }
 
         static void Callback(const v8::FunctionCallbackInfo<v8::Value>& args) {
-            v8::Local<v8::External> data = v8::Local<v8::External>::Cast(args.Data());
-            auto* selfRef = static_cast<global::GlobalTemplate*>(data->Value());
+            const v8::Local<v8::Object> selfRef = args.This();
+            const v8::Local<v8::External> wrap = v8::Local<v8::External>::Cast(selfRef->GetInternalField(0));
+            auto logger = static_cast<Logger*>(wrap->Value());
+
 
             if (args.Length() > 0) {
                 v8::String::Utf8Value utf8(args.GetIsolate(), args[0]);
-                selfRef->GetLogger()->Info("Log from resource: %s", *utf8);
+                logger->Info("Log from resource: %s", *utf8);
             }
         }
     };
