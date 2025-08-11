@@ -26,17 +26,21 @@ namespace js::templates {
         v8::Local<v8::Object> yampObject = yampTemplate->NewInstance(m_Isolate->GetCurrentContext()).ToLocalChecked();
 
         // Resource class
-        v8::Local<v8::ObjectTemplate> objectTemplate = ResourceClass::CreateTemplate(m_Isolate);
+        v8::Local<v8::ObjectTemplate> resourceTemplate = ResourceClass::CreateTemplate(m_Isolate);
 
-        v8::Local<v8::Object> resourceObject = objectTemplate->NewInstance(m_Isolate->GetCurrentContext()).ToLocalChecked();
+        v8::Local<v8::Object> resourceObject = resourceTemplate->NewInstance(m_Isolate->GetCurrentContext()).ToLocalChecked();
 
         resourceObject->SetInternalField(0, v8::External::New(m_Isolate, m_Resource));
 
-        yampObject->Set(
+        v8::Maybe<bool> yampObjectReturn = yampObject->Set(
             m_Isolate->GetCurrentContext(),
             utils::StringToV8(m_Isolate, ResourceClass::Name()),
             resourceObject
         );
+
+        if (yampObjectReturn.IsEmpty()) {
+            m_Logger->Error("While assigning resource class to yamp object an error occoured");
+        }
 
         m_Template->Set(
             utils::StringToV8(m_Isolate, "yamp"),
