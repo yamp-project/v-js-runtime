@@ -20,8 +20,16 @@ namespace js {
         Resource(ILookupTable* lookupTable, IResource* resource, v8::Isolate* isolate);
         ~Resource() = default;
 
-        std::string GetResourcePath() {
+        std::string GetResourcePath() const {
             return m_Resource->path;
+        }
+
+        std::string GetMainFilePath() const {
+            return m_Resource->mainFile;
+        }
+
+        std::string GetResourceName() const {
+            return m_Resource->name;
         }
 
         v8::MaybeLocal<v8::Module> GetProcessedModule(const std::string &specifier) {

@@ -17,7 +17,10 @@ namespace js {
 
         v8::Isolate::Scope scope(m_Isolate);
         v8::HandleScope handleScope(m_Isolate);
-        v8::Local<v8::Context> context = v8::Context::New(m_Isolate, nullptr);
+
+        templates::GlobalTemplate global (m_Isolate, &m_Logger, this);
+
+        v8::Local<v8::Context> context = v8::Context::New(m_Isolate, nullptr, global.GetGlobalTemplate());
 
         context->SetAlignedPointerInEmbedderData(1, this);
 

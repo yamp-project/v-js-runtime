@@ -1,12 +1,13 @@
 #ifndef V8_GLOBAL_TEMPLATE_H
 #define V8_GLOBAL_TEMPLATE_H
 #include "v8.h"
+#include "../core/resource.h"
 #include "util/logger.h"
 
-namespace js::global {
+namespace js::templates {
     class GlobalTemplate {
     public:
-        GlobalTemplate(v8::Isolate* isolate, Logger* logger);
+        GlobalTemplate(v8::Isolate* isolate, Logger* logger, Resource* resource);
         ~GlobalTemplate();
 
         v8::Local<v8::ObjectTemplate> GetGlobalTemplate();
@@ -16,8 +17,9 @@ namespace js::global {
         }
     private:
         v8::Local<v8::ObjectTemplate> m_Template;
-
         v8::Isolate* m_Isolate;
+
+        Resource* m_Resource;
         Logger* m_Logger;
     };
 }

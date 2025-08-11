@@ -1,11 +1,11 @@
 #include "global_template.h"
 
 #include "function/LogFunction.h"
-#include "object/LogClass.h"
+#include "object/ResourceClass.h"
 #include "util/utils.h"
 
-namespace js::global {
-    GlobalTemplate::GlobalTemplate(v8::Isolate* isolate, Logger* logger) : m_Isolate(isolate), m_Logger(logger) {
+namespace js::templates {
+    GlobalTemplate::GlobalTemplate(v8::Isolate* isolate, Logger* logger, Resource* resource) : m_Isolate(isolate), m_Logger(logger), m_Resource(resource) {
 
     }
 
@@ -15,24 +15,22 @@ namespace js::global {
         v8::HandleScope handleScope(m_Isolate);
         m_Template = v8::ObjectTemplate::New(m_Isolate);
 
-        v8::Local<v8::External> loggerRef = v8::External::New(m_Isolate, m_Logger);
-
         // Temporary log function
         m_Template->Set(
-            utils::StringToV8(m_Isolate, templates::LogFunction::Name()),
-            v8::FunctionTemplate::New(m_Isolate, templates::LogFunction::Callback, loggerRef)
+            utils::StringToV8(m_Isolate, LogFunction::Name()),
+            v8::FunctionTemplate::New(m_Isolate, LogFunction::Callback, v8::External::New(m_Isolate, m_Logger))
         );
 
-        // Temporary log class
-        v8::Local<v8::ObjectTemplate> objectTemplate = templates::LogClass::CreateTemplate(m_Isolate);
+        // Resource class
+        v8::Local<v8::ObjectTemplate> objectTemplate = ResourceClass::CreateTemplate(m_Isolate);
 
-        v8::Local<v8::Object> loggerObject = objectTemplate->NewInstance(m_Isolate->GetCurrentContext()).ToLocalChecked();
+        v8::Local<v8::Object> resourceObject = objectTemplate->NewInstance(m_Isolate->GetCurrentContext()).ToLocalChecked();
 
-        loggerObject->SetInternalField(0, loggerRef);
+        resourceObject->SetInternalField(0, v8::External::New(m_Isolate, m_Resource));
 
         m_Template->Set(
-            utils::StringToV8(m_Isolate, templates::LogClass::Name()),
-            loggerObject
+            utils::StringToV8(m_Isolate, ResourceClass::Name()),
+            resourceObject
         );
 
         return m_Template;
