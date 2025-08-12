@@ -12,15 +12,15 @@ namespace js {
 
     void Resource::OnStart()
     {
-        std::filesystem::path resourcePath = m_Resource->path;
-        std::filesystem::path mainFilePath = m_Resource->mainFile;
+        const std::filesystem::path resourcePath = m_Resource->path;
+        const std::filesystem::path mainFilePath = m_Resource->mainFile;
 
         v8::Isolate::Scope scope(m_Isolate);
         v8::HandleScope handleScope(m_Isolate);
 
         templates::GlobalTemplate global (m_Isolate, &m_Logger, this);
 
-        v8::Local<v8::Context> context = v8::Context::New(m_Isolate, nullptr, global.GetGlobalTemplate());
+        const v8::Local<v8::Context> context = v8::Context::New(m_Isolate, nullptr, global.GetGlobalTemplate());
 
         context->SetAlignedPointerInEmbedderData(1, this);
 
@@ -36,7 +36,7 @@ namespace js {
             return;
         }
 
-        const v8::Maybe<bool> result = scriptModule->InstantiateModule(context, Resource::ResolveCallback, nullptr);
+        const v8::Maybe<bool> result = scriptModule->InstantiateModule(context, ResolveCallback, nullptr);
         if (result.IsNothing()) {
             m_Logger.Warn("Failed to instantiate module");
             this->OnStop();
@@ -95,7 +95,7 @@ namespace js {
     }
 
     v8::MaybeLocal<v8::Module> Resource::ResolveCallback(const v8::Local<v8::Context> context,
-        const v8::Local<v8::String> specifier, const v8::Local<v8::FixedArray> import_attributes, const v8::Local<v8::Module> referrer) {
+        const v8::Local<v8::String> specifier, [[maybe_unused]] const v8::Local<v8::FixedArray> import_attributes, [[maybe_unused]] const v8::Local<v8::Module> referrer) {
 
         v8::Isolate* isolate = context->GetIsolate();
 
@@ -105,7 +105,7 @@ namespace js {
 
         std::string specifierStr (*v8::String::Utf8Value(isolate, specifier));
 
-        v8::MaybeLocal<v8::Module> processedModule = selfRef->GetProcessedModule(specifierStr);
+        const v8::MaybeLocal<v8::Module> processedModule = selfRef->GetProcessedModule(specifierStr);
 
         if (!processedModule.IsEmpty()) {
             return processedModule;
