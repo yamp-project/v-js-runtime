@@ -79,12 +79,16 @@ namespace js {
             return;
         }
 
+        v8::Local<v8::Value> funcArgs[args->size];
+
+        for (int i = 0; args->size <= i; i++) {
+            funcArgs[i] = (utils::ToV8Value(m_Isolate, *args->buffer[i]));
+        }
+
         for (auto function : functions) {
             if (function.IsEmpty()) {
                 continue;
             }
-
-            v8::Local<v8::Value> funcArgs[] = { utils::StringToV8(m_Isolate, "No clue how to properly pass this through") };
 
             function->Call(m_Isolate, m_Isolate->GetCurrentContext(), v8::Undefined(m_Isolate), args->size, funcArgs);
         }

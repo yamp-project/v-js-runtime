@@ -23,6 +23,66 @@ namespace utils
     inline v8::Local<v8::String> StringToV8(v8::Isolate* isolate, const std::string& str) {
         return v8::String::NewFromUtf8(isolate, str.c_str()).ToLocalChecked();
     }
+
+    inline v8::Local<v8::Value> ToV8Value(v8::Isolate* isolate, const CAnyValue& anyValue) {
+        switch (static_cast<CType>(anyValue.type)) {
+            case C_INT_8: {
+                return v8::Number::New(isolate, anyValue.value.m_Int8);
+            }
+            case C_INT_16: {
+                return v8::Number::New(isolate, anyValue.value.m_Int16);
+            }
+            case C_INT_32: {
+                return v8::Number::New(isolate, anyValue.value.m_Int32);
+            }
+            case C_INT_64: {
+                return v8::Number::New(isolate, anyValue.value.m_Int64);
+            }
+            case C_UINT_8: {
+                return v8::Number::New(isolate, anyValue.value.m_Uint8);
+            }
+            case C_UINT_16: {
+                return v8::Number::New(isolate, anyValue.value.m_Uint16);
+            }
+            case C_UINT_32: {
+                return v8::Number::New(isolate, anyValue.value.m_Uint32);
+            }
+            case C_UINT_64: {
+                return v8::Number::New(isolate, anyValue.value.m_Uint64);
+            }
+            case C_DOUBLE: {
+                return v8::Number::New(isolate, anyValue.value.m_Double);
+            }
+            case C_NULL: {
+                // TODO
+            }
+            case C_STRING: {
+                return StringToV8(isolate, anyValue.value.m_String);
+            }
+            case C_FLOAT: {
+                return v8::Number::New(isolate, anyValue.value.m_Float);
+            }
+            case C_BOOL: {
+                return v8::Boolean::New(isolate, anyValue.value.m_Bool);
+            }
+            case C_ANY_ARRAY: {
+                // TODO
+            }
+            case C_ARRAY: {
+                // TODO
+            }
+            case C_DICT: {
+                // TODO
+            }
+            case C_VECTOR: {
+                // TODO
+            }
+            case C_DATE: {
+                // TODO
+            }
+            default: return {};
+        }
+    }
 }
 
 #endif //UTILS_H

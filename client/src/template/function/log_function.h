@@ -14,7 +14,7 @@ namespace js::templates {
         static void Callback(const v8::FunctionCallbackInfo<v8::Value>& args) {
             const v8::Local<v8::Object> selfRef = args.This();
             const v8::Local<v8::External> wrap = v8::Local<v8::External>::Cast(selfRef->GetInternalField(0));
-            auto logger = static_cast<Logger*>(wrap->Value());
+            const auto logger = static_cast<Logger*>(wrap->Value());
 
 
             if (args.Length() > 0) {

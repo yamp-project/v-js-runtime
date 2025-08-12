@@ -83,13 +83,13 @@ namespace js::templates {
                 return;
             }
 
-            std::string eventName(*v8::String::Utf8Value(isolate, eventNameArg));
+            const std::string eventName(*v8::String::Utf8Value(isolate, eventNameArg));
 
             if (!eventFunctionArg->IsFunction()) {
                 return;
             }
 
-            v8::Local<v8::Function> eventFunctionRef = v8::Local<v8::Function>::Cast(eventFunctionArg);
+            const v8::Local<v8::Function> eventFunctionRef = v8::Local<v8::Function>::Cast(eventFunctionArg);
 
             resource->AddEventCallback(eventName, eventFunctionRef);
         }

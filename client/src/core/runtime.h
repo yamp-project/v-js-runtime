@@ -30,7 +30,7 @@ namespace js
 
         using Resources = std::unordered_map<IResource*, std::unique_ptr<Resource>>;
 
-        Runtime(ILookupTable* lookupTable);
+        explicit Runtime(ILookupTable* lookupTable);
         ~Runtime() = default;
 
         ILookupTable* GetLookupTable() const

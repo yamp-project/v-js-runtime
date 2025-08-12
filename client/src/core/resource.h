@@ -20,14 +20,17 @@ namespace js {
         Resource(ILookupTable* lookupTable, IResource* resource, v8::Isolate* isolate);
         ~Resource() = default;
 
+        [[nodiscard]]
         std::string GetResourcePath() const {
             return m_Resource->path;
         }
 
+        [[nodiscard]]
         std::string GetMainFilePath() const {
             return m_Resource->mainFile;
         }
 
+        [[nodiscard]]
         std::string GetResourceName() const {
             return m_Resource->name;
         }
