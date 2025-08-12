@@ -1,0 +1,3 @@
+[submodule "vendors/yamp-sdk"]
+	path = vendors/yamp-sdk
+	url = git@github.com:yamp-project/sdk-poc.git
