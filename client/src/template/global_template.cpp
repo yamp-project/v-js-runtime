@@ -1,7 +1,7 @@
 #include "global_template.h"
 
-#include "function/LogFunction.h"
-#include "object/ResourceClass.h"
+#include "function/log_function.h"
+#include "object/resource_class.h"
 #include "util/utils.h"
 
 namespace js::templates {
@@ -17,8 +17,8 @@ namespace js::templates {
 
         // Temporary log function
         m_Template->Set(
-            utils::StringToV8(m_Isolate, LogFunction::Name()),
-            v8::FunctionTemplate::New(m_Isolate, LogFunction::Callback, v8::External::New(m_Isolate, m_Logger))
+            utils::StringToV8(m_Isolate, log_function::Name()),
+            v8::FunctionTemplate::New(m_Isolate, log_function::Callback, v8::External::New(m_Isolate, m_Logger))
         );
 
         // yamp object
@@ -26,7 +26,7 @@ namespace js::templates {
         v8::Local<v8::Object> yampObject = yampTemplate->NewInstance(m_Isolate->GetCurrentContext()).ToLocalChecked();
 
         // Resource class
-        v8::Local<v8::ObjectTemplate> resourceTemplate = ResourceClass::CreateTemplate(m_Isolate);
+        v8::Local<v8::ObjectTemplate> resourceTemplate = resource_class::CreateTemplate(m_Isolate);
 
         v8::Local<v8::Object> resourceObject = resourceTemplate->NewInstance(m_Isolate->GetCurrentContext()).ToLocalChecked();
 
@@ -34,7 +34,7 @@ namespace js::templates {
 
         v8::Maybe<bool> yampObjectReturn = yampObject->Set(
             m_Isolate->GetCurrentContext(),
-            utils::StringToV8(m_Isolate, ResourceClass::Name()),
+            utils::StringToV8(m_Isolate, resource_class::Name()),
             resourceObject
         );
 

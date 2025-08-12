@@ -68,10 +68,26 @@ namespace js {
 
     void Resource::OnEvent(CoreEventType type, CAnyArray* args)
     {
+
     }
 
     void Resource::OnEvent(const char* name, CAnyArray* args)
     {
+        const std::vector<v8::Local<v8::Function>> functions = m_EventCallbacks[name];
+
+        if (functions.empty()) {
+            return;
+        }
+
+        for (auto function : functions) {
+            if (function.IsEmpty()) {
+                continue;
+            }
+
+            v8::Local<v8::Value> funcArgs[] = { utils::StringToV8(m_Isolate, "No clue how to properly pass this through") };
+
+            function->Call(m_Isolate, m_Isolate->GetCurrentContext(), v8::Undefined(m_Isolate), args->size, funcArgs);
+        }
     }
 
     v8::MaybeLocal<v8::Module> Resource::ResolveCallback(const v8::Local<v8::Context> context,

@@ -32,7 +32,7 @@ namespace js {
             return m_Resource->name;
         }
 
-        v8::MaybeLocal<v8::Module> GetProcessedModule(const std::string &specifier) {
+        v8::MaybeLocal<v8::Module> GetProcessedModule(const std::string& specifier) {
             if (m_ProcessedModules.contains(specifier)) {
                 return m_ProcessedModules[specifier].Get(m_Isolate);
             }
@@ -42,6 +42,10 @@ namespace js {
 
         void AddProcessedModule(const std::string &specifier, v8::Local<v8::Module> module) {
             m_ProcessedModules[specifier].Reset(m_Isolate, module);
+        }
+
+        void AddEventCallback(const std::string& event, const v8::Local<v8::Function> callback) {
+            m_EventCallbacks[event].push_back(callback);
         }
 
     private:
@@ -54,6 +58,8 @@ namespace js {
 
         IResource* m_Resource;
         Logger m_Logger;
+
+        std::map<std::string, std::vector<v8::Local<v8::Function>>> m_EventCallbacks;
 
         v8::Isolate* m_Isolate;
         v8::Local<v8::ObjectTemplate> m_GlobalTemplate;

@@ -76,6 +76,9 @@ namespace js::templates {
             v8::Local<v8::Value> eventNameArg = args[0];
             v8::Local<v8::Value> eventFunctionArg = args[1];
 
+            const v8::Local<v8::External> wrap = v8::Local<v8::External>::Cast(args.This()->GetInternalField(0));
+            const auto resource = static_cast<Resource*>(wrap->Value());
+
             if (!eventNameArg->IsString()) {
                 return;
             }
@@ -88,7 +91,7 @@ namespace js::templates {
 
             v8::Local<v8::Function> eventFunctionRef = v8::Local<v8::Function>::Cast(eventFunctionArg);
 
-            // TODO
+            resource->AddEventCallback(eventName, eventFunctionRef);
         }
     };
 }
