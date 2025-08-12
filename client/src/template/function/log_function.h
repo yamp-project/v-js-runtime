@@ -5,7 +5,7 @@
 #include <v8.h>
 
 namespace js::templates {
-    class LogFunction final {
+    class log_function final {
     public:
         static std::string Name() {
             return "yamp_log";

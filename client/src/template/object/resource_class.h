@@ -4,7 +4,7 @@
 #include "util/utils.h"
 
 namespace js::templates {
-    class ResourceClass final {
+    class resource_class final {
     public:
         static std::string Name() {
             return "resource";
@@ -16,21 +16,25 @@ namespace js::templates {
 
             oTemplate->SetInternalFieldCount(1);
 
+            // yamp.resource.name();
             oTemplate->Set(
                 utils::StringToV8(isolate, "name"),
                 v8::FunctionTemplate::New(isolate, NameCallback)
             );
 
+            // yamp.resource.resourcePath();
             oTemplate->Set(
                 utils::StringToV8(isolate, "resourcePath"),
                 v8::FunctionTemplate::New(isolate, ResourcePathCallback)
             );
 
+            // yamp.resource.resourceMainFile();
         	oTemplate->Set(
                 utils::StringToV8(isolate, "resourceMainFile"),
                 v8::FunctionTemplate::New(isolate, ResourceMainFileCallback)
             );
 
+            // yamp.resource.on(EventName: string, CallbackFunction: void);
         	oTemplate->Set(
                 utils::StringToV8(isolate, "on"),
                 v8::FunctionTemplate::New(isolate, OnEventCallback)
@@ -68,6 +72,22 @@ namespace js::templates {
         }
 
         static void OnEventCallback(const v8::FunctionCallbackInfo<v8::Value>& args) {
+            v8::Isolate* isolate = args.GetIsolate();
+            v8::Local<v8::Value> eventNameArg = args[0];
+            v8::Local<v8::Value> eventFunctionArg = args[1];
+
+            if (!eventNameArg->IsString()) {
+                return;
+            }
+
+            std::string eventName(*v8::String::Utf8Value(isolate, eventNameArg));
+
+            if (!eventFunctionArg->IsFunction()) {
+                return;
+            }
+
+            v8::Local<v8::Function> eventFunctionRef = v8::Local<v8::Function>::Cast(eventFunctionArg);
+
             // TODO
         }
     };
