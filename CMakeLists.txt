@@ -20,6 +20,7 @@ endif()
 # Version header file
 execute_process(
         COMMAND git rev-parse --short HEAD
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         OUTPUT_VARIABLE GIT_SHORT_HASH
         OUTPUT_STRIP_TRAILING_WHITESPACE
 )
