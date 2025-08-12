@@ -39,7 +39,7 @@ namespace js::templates {
         );
 
         if (yampObjectReturn.IsEmpty()) {
-            m_Logger->Error("While assigning resource class to yamp object an error occoured");
+            m_Logger->Error("While assigning resource class to yamp object an error occurred");
         }
 
         m_Template->Set(
