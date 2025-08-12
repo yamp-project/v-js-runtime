@@ -1,6 +1,8 @@
 #ifndef V8_LOGCLASS_H
 #define V8_LOGCLASS_H
 #include <v8.h>
+
+#include "../../core/runtime.h"
 #include "util/utils.h"
 
 namespace js::templates {
@@ -91,7 +93,14 @@ namespace js::templates {
 
             const v8::Local<v8::Function> eventFunctionRef = v8::Local<v8::Function>::Cast(eventFunctionArg);
 
-            resource->AddEventCallback(eventName, eventFunctionRef);
+            const std::optional<CoreEventType> coreEvent = Runtime::GetInstance()->GetCoreEventType(eventName.c_str());
+
+            if (coreEvent.has_value()) {
+                resource->AddCoreEventCallback(coreEvent.value(), eventFunctionRef);
+            } else {
+                resource->AddEventCallback(eventName, eventFunctionRef);
+            }
+
         }
     };
 }

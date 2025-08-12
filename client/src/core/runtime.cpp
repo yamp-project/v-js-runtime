@@ -153,7 +153,7 @@ namespace js
 
     std::optional<CoreEventType> Runtime::GetCoreEventType(const char* eventName)
     {
-        auto it = m_CoreEventMapping.find(eventName);
+        const auto it = m_CoreEventMapping.find(eventName);
         if (it != m_CoreEventMapping.end()) {
             return std::optional{it->second};
         }

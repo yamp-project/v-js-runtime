@@ -2,6 +2,7 @@
 
 #include <filesystem>
 
+#include "runtime.h"
 #include "../template/global_template.h"
 #include "util/utils.h"
 
@@ -66,12 +67,30 @@ namespace js {
         //
     }
 
-    void Resource::OnEvent(CoreEventType type, CAnyArray* args)
+    void Resource::OnEvent(const CoreEventType type, const CAnyArray* args)
     {
+        const std::vector<v8::Local<v8::Function>> functions = m_CoreEventCallbacks[type];
 
+        if (functions.empty()) {
+            return;
+        }
+
+        v8::Local<v8::Value> funcArgs[args->size];
+
+        for (int i = 0; args->size <= i; i++) {
+            funcArgs[i] = (utils::ToV8Value(m_Isolate, *args->buffer[i]));
+        }
+
+        for (auto function : functions) {
+            if (function.IsEmpty()) {
+                continue;
+            }
+
+            function->Call(m_Isolate, m_Isolate->GetCurrentContext(), v8::Undefined(m_Isolate), args->size, funcArgs);
+        }
     }
 
-    void Resource::OnEvent(const char* name, CAnyArray* args)
+    void Resource::OnEvent(const char* name, const CAnyArray* args)
     {
         const std::vector<v8::Local<v8::Function>> functions = m_EventCallbacks[name];
 

@@ -14,8 +14,8 @@ namespace js {
         void OnStart();
         void OnStop();
         void OnTick();
-        void OnEvent(CoreEventType type, CAnyArray* args);
-        void OnEvent(const char* name, CAnyArray* args);
+        void OnEvent(CoreEventType type, const CAnyArray* args);
+        void OnEvent(const char* name, const CAnyArray* args);
 
         Resource(ILookupTable* lookupTable, IResource* resource, v8::Isolate* isolate);
         ~Resource() = default;
@@ -47,6 +47,10 @@ namespace js {
             m_ProcessedModules[specifier].Reset(m_Isolate, module);
         }
 
+        void AddCoreEventCallback(const CoreEventType event, const v8::Local<v8::Function> callback) {
+            m_CoreEventCallbacks[event].push_back(callback);
+        }
+
         void AddEventCallback(const std::string& event, const v8::Local<v8::Function> callback) {
             m_EventCallbacks[event].push_back(callback);
         }
@@ -62,6 +66,7 @@ namespace js {
         IResource* m_Resource;
         Logger m_Logger;
 
+        std::map<CoreEventType, std::vector<v8::Local<v8::Function>>> m_CoreEventCallbacks;
         std::map<std::string, std::vector<v8::Local<v8::Function>>> m_EventCallbacks;
 
         v8::Isolate* m_Isolate;
