@@ -6,7 +6,7 @@
 #include "util/utils.h"
 
 namespace js::templates {
-    class resource_class final {
+    class ResourceClass final {
     public:
         static std::string Name() {
             return "resource";

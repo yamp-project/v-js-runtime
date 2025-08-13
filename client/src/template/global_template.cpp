@@ -1,6 +1,6 @@
 #include "global_template.h"
 
-#include "function/log_function.h"
+#include "object/native_class.h"
 #include "object/resource_class.h"
 #include "util/utils.h"
 
@@ -15,26 +15,29 @@ namespace js::templates {
         v8::HandleScope handleScope(m_Isolate);
         m_Template = v8::ObjectTemplate::New(m_Isolate);
 
-        // Temporary log function
+        // Native invoker class
+        const v8::Local<v8::ObjectTemplate> nativeTemplate = NativeClass::CreateTemplate(m_Isolate);
+        const v8::Local<v8::Object> nativeObject = nativeTemplate->NewInstance(m_Isolate->GetCurrentContext()).ToLocalChecked();
+
         m_Template->Set(
-            utils::StringToV8(m_Isolate, log_function::Name()),
-            v8::FunctionTemplate::New(m_Isolate, log_function::Callback, v8::External::New(m_Isolate, m_Logger))
+            utils::StringToV8(m_Isolate, NativeClass::Name()),
+            nativeObject
         );
 
         // yamp object
-        v8::Local<v8::ObjectTemplate> yampTemplate = v8::ObjectTemplate::New(m_Isolate);
-        v8::Local<v8::Object> yampObject = yampTemplate->NewInstance(m_Isolate->GetCurrentContext()).ToLocalChecked();
+        const v8::Local<v8::ObjectTemplate> yampTemplate = v8::ObjectTemplate::New(m_Isolate);
+        const v8::Local<v8::Object> yampObject = yampTemplate->NewInstance(m_Isolate->GetCurrentContext()).ToLocalChecked();
 
         // Resource class
-        v8::Local<v8::ObjectTemplate> resourceTemplate = resource_class::CreateTemplate(m_Isolate);
+        const v8::Local<v8::ObjectTemplate> resourceTemplate = ResourceClass::CreateTemplate(m_Isolate);
 
-        v8::Local<v8::Object> resourceObject = resourceTemplate->NewInstance(m_Isolate->GetCurrentContext()).ToLocalChecked();
+        const v8::Local<v8::Object> resourceObject = resourceTemplate->NewInstance(m_Isolate->GetCurrentContext()).ToLocalChecked();
 
         resourceObject->SetInternalField(0, v8::External::New(m_Isolate, m_Resource));
 
-        v8::Maybe<bool> yampObjectReturn = yampObject->Set(
+        const v8::Maybe<bool> yampObjectReturn = yampObject->Set(
             m_Isolate->GetCurrentContext(),
-            utils::StringToV8(m_Isolate, resource_class::Name()),
+            utils::StringToV8(m_Isolate, ResourceClass::Name()),
             resourceObject
         );
 

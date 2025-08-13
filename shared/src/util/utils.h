@@ -116,6 +116,14 @@ namespace utils
 
         return result;
     }
+
+    inline float V8ValueToFloat(v8::Isolate* isolate, const v8::Local<v8::Value> value) {
+        if (!value->IsNumber()) {
+            return 0.0f;
+        }
+
+        return static_cast<float>(value->NumberValue(isolate->GetCurrentContext()).ToChecked());
+    }
 }
 
 #endif //UTILS_H
