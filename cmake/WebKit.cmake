@@ -50,7 +50,14 @@ function(setup_webkit_jsc)
         message(FATAL_ERROR "WebKit source not found. Please run: git submodule update --init --recursive")
     endif()
 
-    set(JSC_INCLUDE_DIR "${WEBKIT_SOURCE_DIR}/Source/JavaScriptCore/API")
+    set (JSC_CLEAN_INCLUDE_DIR "${CMAKE_BINARY_DIR}/jsc-include")
+    file(MAKE_DIRECTORY "${JSC_CLEAN_INCLUDE_DIR}/JavaScriptCore")
+
+    file(COPY "${WEBKIT_SOURCE_DIR}/Source/JavaScriptCore/API/"
+            DESTINATION "${JSC_CLEAN_INCLUDE_DIR}/JavaScriptCore/"
+            FILES_MATCHING PATTERN "*.h")
+
+    set(JSC_INCLUDE_DIR "${JSC_CLEAN_INCLUDE_DIR}")
 
     ExternalProject_Add(WebKit_External
             SOURCE_DIR ${WEBKIT_SOURCE_DIR}
