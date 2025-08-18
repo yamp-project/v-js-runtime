@@ -1,6 +1,3 @@
 [submodule "vendors/yamp-sdk"]
 	path = vendors/yamp-sdk
 	url = git@github.com:yamp-project/sdk-poc.git
-[submodule "vendors/webkit"]
-	path = vendors/webkit
-	url = git@github.com:WebKit/WebKit.git
