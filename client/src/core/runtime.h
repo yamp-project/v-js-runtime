@@ -4,6 +4,7 @@
 #include <yamp-sdk/sdk.h>
 
 #include <memory>
+#include <optional>
 #include <unordered_map>
 
 #include "resource.h"
@@ -19,7 +20,7 @@ namespace js
     void OnCoreEvent(CoreEventType type, CAnyArray* args);
     void OnResourceEvent(const char* name, CAnyArray* args);
 
-    void ShutdownV8();
+    JSClassRef GetGlobalTemplate();
 
     class Runtime
     {
@@ -48,11 +49,6 @@ namespace js
             return m_Logger;
         }
 
-        std::vector<std::unique_ptr<v8::Isolate>>& GetIsolates()
-        {
-            return m_Isolates;
-        }
-
         Resource* CreateResource(IResource* resource);
         Resource* GetResource(IResource* resource);
 
@@ -64,10 +60,6 @@ namespace js
         ILookupTable* m_LookupTable = nullptr;
         Logger m_Logger;
         Resources m_Resources;
-
-        // V8
-        v8::Isolate::CreateParams m_IsolateParams;
-        std::vector<std::unique_ptr<v8::Isolate>> m_Isolates;
 
         std::unordered_map<std::string, CoreEventType> m_CoreEventMapping;
     };

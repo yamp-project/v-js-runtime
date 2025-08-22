@@ -3,9 +3,8 @@
 #include "util/utils.h"
 
 #include <cassert>
+#include <ranges>
 #include <utility>
-#include <v8.h>
-#include <v8/include/libplatform/libplatform.h>
 
 namespace js
 {
@@ -15,19 +14,7 @@ namespace js
 
         runtime->GetLogger().Info("Javascript runtime initializing");
 
-        // Init V8
-        v8::V8::InitializeICUDefaultLocation("");
-        v8::V8::InitializeExternalStartupData("");
-        std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform();
-        v8::V8::InitializePlatform(platform.get());
-        v8::V8::Initialize();
-
         return true;
-    }
-
-    void Shutdown()
-    {
-        ShutdownV8();
     }
 
     void OnResourceStart(IResource* resource)
@@ -77,19 +64,6 @@ namespace js
         }
     }
 
-    void ShutdownV8()
-    {
-        for (auto& isolate : Runtime::GetInstance()->GetIsolates())
-        {
-            isolate->Dispose();
-            isolate.release();
-        }
-        Runtime::GetInstance()->GetIsolates().clear();
-
-        v8::V8::Dispose();
-        v8::V8::DisposePlatform();
-    }
-
     std::unique_ptr<Runtime> Runtime::s_Instance = nullptr;
 
     Runtime* Runtime::GetInstance()
@@ -109,8 +83,6 @@ namespace js
             CoreEventMeta& eventMeta = eventMetas.buffer[i];
             s_Instance->m_CoreEventMapping[::utils::StrToCamelCase(eventMeta.name)] = eventMeta.type;
         }
-
-        s_Instance->m_IsolateParams.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
 
         return s_Instance.get();
     }
@@ -138,13 +110,7 @@ namespace js
 
     Resource* Runtime::CreateResource(IResource* iResource)
     {
-        std::unique_ptr<v8::Isolate> isolate(v8::Isolate::New(m_IsolateParams));
-
-        v8::Isolate* isolatePtr = isolate.get();
-
-        m_Isolates.push_back(std::move(isolate));
-
-        auto resourcePtr = std::make_unique<Resource>(m_LookupTable, iResource, isolatePtr);
+        auto resourcePtr = std::make_unique<Resource>(m_LookupTable, iResource);
 
         m_Resources[iResource] = std::move(resourcePtr);
 
