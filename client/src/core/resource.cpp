@@ -14,11 +14,18 @@ namespace js {
         const std::filesystem::path mainFilePath = m_Resource->mainFile;
 
         m_Logger.Info("Running resource %s with main file %s and resource path %s!", m_Resource->name, mainFilePath.c_str(), resourcePath.c_str());
+
+        m_ModuleLoader = std::make_unique<wrapper::JSModuleLoader>(m_ContextWrapper->get(), resourcePath, &m_Logger);
+
+        if (!m_ModuleLoader->LoadMainFile(mainFilePath)) {
+            m_Logger.Error("Failed to load main file!");
+        }
     }
 
     void Resource::OnStop()
     {
         m_Logger.Info("Stopping resource %s", m_Resource->name);
+        m_ModuleLoader.reset();
         this->~Resource();
     }
 

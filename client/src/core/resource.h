@@ -10,6 +10,7 @@
 
 #include "runtime.h"
 #include "../wrapper/JSContextWrapper.h"
+#include "../wrapper/JSModuleLoader.h"
 
 namespace js {
     class Resource {
@@ -59,6 +60,7 @@ namespace js {
         std::map<std::string, std::vector<JSObjectRef>> m_EventCallbacks;
 
         std::unique_ptr<wrapper::JSContextWrapper> m_ContextWrapper;
+        std::unique_ptr<wrapper::JSModuleLoader> m_ModuleLoader;
     };
 } // js
 
