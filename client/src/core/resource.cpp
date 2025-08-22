@@ -54,7 +54,7 @@ namespace js {
             }
 
             JSValueRef exception = nullptr;
-            JSValueRef result = JSObjectCallAsFunction(
+            JSObjectCallAsFunction(
                 m_ContextWrapper->get(),
                 function,
                 nullptr,
