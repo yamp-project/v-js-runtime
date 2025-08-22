@@ -52,6 +52,8 @@ namespace js
         Resource* CreateResource(IResource* resource);
         Resource* GetResource(IResource* resource);
 
+        void UnregisterResource(IResource *resource);
+
         std::optional<CoreEventType> GetCoreEventType(const char* eventName);
 
     private:

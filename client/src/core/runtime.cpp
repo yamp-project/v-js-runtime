@@ -35,6 +35,8 @@ namespace js
     void OnResourceStop(IResource* resource)
     {
         Runtime::GetInstance()->GetLogger().Info("Resource %s stopped", resource->name);
+        Runtime::GetInstance()->GetResource(resource)->OnStop();
+        Runtime::GetInstance()->UnregisterResource(resource);
     }
 
     void OnTick()
@@ -106,6 +108,18 @@ namespace js
         }
 
         return nullptr;
+    }
+
+    void Runtime::UnregisterResource(IResource* resource) {
+        const auto it = m_Resources.find(resource);
+        if (it == m_Resources.end())
+        {
+            return;
+        }
+
+        it->second.reset();
+
+        m_Resources.erase(resource);
     }
 
     Resource* Runtime::CreateResource(IResource* iResource)

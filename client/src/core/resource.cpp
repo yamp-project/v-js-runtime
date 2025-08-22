@@ -18,7 +18,8 @@ namespace js {
 
     void Resource::OnStop()
     {
-
+        m_Logger.Info("Stopping resource %s", m_Resource->name);
+        this->~Resource();
     }
 
     void Resource::OnTick()
