@@ -6,7 +6,10 @@
 #include "util/logger.h"
 
 #include <yamp-sdk/sdk.h>
-#include <v8.h>
+#include <JavaScriptCore/JavaScript.h>
+
+#include "runtime.h"
+#include "../wrapper/JSContextWrapper.h"
 
 namespace js {
     class Resource {
@@ -17,7 +20,9 @@ namespace js {
         void OnEvent(CoreEventType type, const CAnyArray* args);
         void OnEvent(const char* name, const CAnyArray* args);
 
-        Resource(ILookupTable* lookupTable, IResource* resource, v8::Isolate* isolate);
+        Resource(ILookupTable* lookupTable, IResource* resource)
+                    : m_Resource(resource), m_Logger(Logger(lookupTable, std::format("resource {}", resource->name))), m_ContextWrapper(std::make_unique<wrapper::JSContextWrapper>(GetGlobalTemplate())) {}
+
         ~Resource() = default;
 
         [[nodiscard]]
@@ -35,42 +40,25 @@ namespace js {
             return m_Resource->name;
         }
 
-        v8::MaybeLocal<v8::Module> GetProcessedModule(const std::string& specifier) {
-            if (m_ProcessedModules.contains(specifier)) {
-                return m_ProcessedModules[specifier].Get(m_Isolate);
-            }
-
-            return {};
-        }
-
-        void AddProcessedModule(const std::string &specifier, v8::Local<v8::Module> module) {
-            m_ProcessedModules[specifier].Reset(m_Isolate, module);
-        }
-
-        void AddCoreEventCallback(const CoreEventType event, const v8::Local<v8::Function> callback) {
+        void AddCoreEventCallback(const CoreEventType event, const JSObjectRef callback) {
             m_CoreEventCallbacks[event].push_back(callback);
         }
 
-        void AddEventCallback(const std::string& event, const v8::Local<v8::Function> callback) {
+        void AddEventCallback(const std::string& event, const JSObjectRef callback) {
             m_EventCallbacks[event].push_back(callback);
         }
 
     private:
-        static v8::MaybeLocal<v8::Module> ResolveCallback(v8::Local<v8::Context> context,
-                                                v8::Local<v8::String> specifier,
-                                                v8::Local<v8::FixedArray> import_attributes,
-                                                v8::Local<v8::Module> referrer);
+        void handleEvent(const std::vector<JSObjectRef>& functions, const CAnyArray* args);
 
-        std::map<std::string, v8::Global<v8::Module>> m_ProcessedModules;
-
+    private:
         IResource* m_Resource;
         Logger m_Logger;
 
-        std::map<CoreEventType, std::vector<v8::Local<v8::Function>>> m_CoreEventCallbacks;
-        std::map<std::string, std::vector<v8::Local<v8::Function>>> m_EventCallbacks;
+        std::map<CoreEventType, std::vector<JSObjectRef>> m_CoreEventCallbacks;
+        std::map<std::string, std::vector<JSObjectRef>> m_EventCallbacks;
 
-        v8::Isolate* m_Isolate;
-        v8::Local<v8::ObjectTemplate> m_GlobalTemplate;
+        std::unique_ptr<wrapper::JSContextWrapper> m_ContextWrapper;
     };
 } // js
 
