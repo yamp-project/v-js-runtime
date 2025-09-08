@@ -40,8 +40,6 @@ add_subdirectory(vendors/yamp-sdk)
 include(WebKit)
 setup_webkit_jsc()
 
-include_directories(vendors)
-
 # Runtimes
 add_subdirectory(shared)
 add_subdirectory(client)
