@@ -9,8 +9,8 @@
 #include <JavaScriptCore/JavaScript.h>
 
 #include "runtime.h"
-#include "../wrapper/JSContextWrapper.h"
-#include "../wrapper/JSModuleLoader.h"
+#include "../wrapper/js_context_wrapper.h"
+#include "../wrapper/js_module_loader.h"
 
 namespace js {
     class Resource {

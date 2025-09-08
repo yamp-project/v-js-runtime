@@ -17,7 +17,8 @@ namespace js::wrapper {
             }
         }
 
-        JSGlobalContextRef get() { return m_Context; }
+        [[nodiscard]]
+        JSGlobalContextRef get() const { return m_Context; }
 
         JSContextWrapper(const JSContextWrapper&) = delete;
         JSContextWrapper& operator=(const JSContextWrapper&) = delete;
