@@ -21,7 +21,7 @@ namespace js {
         void OnEvent(CoreEventType type, const CAnyArray* args);
         void OnEvent(const char* name, const CAnyArray* args);
 
-        Resource(ILookupTable* lookupTable, IResource* resource)
+        Resource(SDK_Interface* lookupTable, SDK_Resource* resource)
                     : m_Resource(resource), m_Logger(Logger(lookupTable, std::format("resource {}", resource->name))), m_ContextWrapper(std::make_unique<wrapper::JSContextWrapper>(GetGlobalTemplate())) {}
 
         ~Resource() = default;
@@ -53,7 +53,7 @@ namespace js {
         void handleEvent(const std::vector<JSObjectRef>& functions, const CAnyArray* args);
 
     private:
-        IResource* m_Resource;
+        SDK_Resource* m_Resource;
         Logger m_Logger;
 
         std::map<CoreEventType, std::vector<JSObjectRef>> m_CoreEventCallbacks;

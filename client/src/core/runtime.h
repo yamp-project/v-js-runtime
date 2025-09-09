@@ -14,8 +14,8 @@ namespace js
 {
     bool Init();
     void Shutdown();
-    void OnResourceStart(IResource* resource);
-    void OnResourceStop(IResource* resource);
+    void OnResourceStart(SDK_Resource* resource);
+    void OnResourceStop(SDK_Resource* resource);
     void OnTick();
     void OnCoreEvent(CoreEventType type, CAnyArray* args);
     void OnResourceEvent(const char* name, CAnyArray* args);
@@ -26,15 +26,15 @@ namespace js
     {
     public:
         static Runtime* GetInstance();
-        static Runtime* Initialize(ILookupTable* lookupTable);
+        static Runtime* Initialize(SDK_Interface* lookupTable);
         static void Shutdown();
 
-        using Resources = std::unordered_map<IResource*, std::unique_ptr<Resource>>;
+        using Resources = std::unordered_map<SDK_Resource*, std::unique_ptr<Resource>>;
 
-        explicit Runtime(ILookupTable* lookupTable);
+        explicit Runtime(SDK_Interface* lookupTable);
         ~Runtime() = default;
 
-        ILookupTable* GetLookupTable() const
+        SDK_Interface* GetLookupTable() const
         {
             return m_LookupTable;
         }
@@ -49,17 +49,17 @@ namespace js
             return m_Logger;
         }
 
-        Resource* CreateResource(IResource* resource);
-        Resource* GetResource(IResource* resource);
+        Resource* CreateResource(SDK_Resource* resource);
+        Resource* GetResource(SDK_Resource* resource);
 
-        void UnregisterResource(IResource *resource);
+        void UnregisterResource(SDK_Resource *resource);
 
         std::optional<CoreEventType> GetCoreEventType(const char* eventName);
 
     private:
         static std::unique_ptr<Runtime> s_Instance;
 
-        ILookupTable* m_LookupTable = nullptr;
+        SDK_Interface* m_LookupTable = nullptr;
         Logger m_Logger;
         Resources m_Resources;
 
