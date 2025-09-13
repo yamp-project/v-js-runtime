@@ -6,7 +6,8 @@
 namespace js::wrapper {
     class JSContextWrapper {
     public:
-        JSContextWrapper() : m_Context(JSGlobalContextCreate(nullptr)) {}
+        JSContextWrapper() : m_Context(JSGlobalContextCreate(nullptr)) {
+        }
 
         JSContextWrapper(JSClassRef globalClass)
             : m_Context(JSGlobalContextCreateInGroup(nullptr, globalClass)) {}

@@ -8,9 +8,7 @@
 #include <yamp-sdk/sdk.h>
 #include <JavaScriptCore/JavaScript.h>
 
-#include "runtime.h"
 #include "../wrapper/js_context_wrapper.h"
-#include "../wrapper/js_global_object.h"
 #include "../wrapper/js_module_loader.h"
 
 namespace js {
@@ -22,10 +20,7 @@ namespace js {
         void OnEvent(CoreEventType type, const CAnyArray* args);
         void OnEvent(const char* name, const CAnyArray* args);
 
-        Resource(SDK_Interface* lookupTable, SDK_Resource* resource)
-                    : m_Resource(resource), m_Logger(Logger(lookupTable, std::format("resource {}", resource->name))), m_ContextWrapper(std::make_unique<wrapper::JSContextWrapper>()) {
-            wrapper::SetupGlobalObjects(m_ContextWrapper.get(), this);
-        }
+        Resource(SDK_Interface* lookupTable, SDK_Resource* resource);
 
         ~Resource() = default;
 
@@ -65,6 +60,8 @@ namespace js {
         std::unique_ptr<wrapper::JSContextWrapper> m_ContextWrapper;
         std::unique_ptr<wrapper::JSModuleLoader> m_ModuleLoader;
     };
+
+    static void SetupGlobalObjects(JSGlobalContextRef context, Resource* resource);
 } // js
 
 #endif //RESOURCE_H

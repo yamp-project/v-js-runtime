@@ -1,6 +1,7 @@
 #include "resource_object.h"
 
 #include "../../util/js_error_util.h"
+#include "../../core/runtime.h"
 
 namespace js::interop {
     JSClassRef ResourceObject::s_ResourceClass = nullptr;

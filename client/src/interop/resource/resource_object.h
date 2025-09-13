@@ -1,8 +1,6 @@
 #ifndef V_JS_RUNTIME_INTEROP_RESOURCE_H
 #define V_JS_RUNTIME_INTEROP_RESOURCE_H
-#include <string>
 #include <JavaScriptCore/JSObjectRef.h>
-
 #include "../../core/resource.h"
 
 namespace js::interop {

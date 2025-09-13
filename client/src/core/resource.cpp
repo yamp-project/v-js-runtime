@@ -6,8 +6,32 @@
 
 #include "runtime.h"
 #include "util/utils.h"
+#include "../interop/resource/resource_object.h"
+
 
 namespace js {
+    void SetupGlobalObjects(JSGlobalContextRef context, Resource *resource) {
+        JSObjectRef globalObject = JSContextGetGlobalObject(context);
+
+        JSObjectRef yampObject = JSObjectMake(context, nullptr, nullptr);
+
+        JSObjectRef resourceObject = interop::ResourceObject::CreateResourceObject(context, resource);
+
+        // add resource object to yamp object
+        JSStringRef resourceName = JSStringCreateWithUTF8CString("resource");
+        JSObjectSetProperty(context, yampObject, resourceName, resourceObject, kJSPropertyAttributeReadOnly, nullptr);
+        JSStringRelease(resourceName);
+
+        // Add yamp object to global
+        JSStringRef yampName = JSStringCreateWithUTF8CString("yamp");
+        JSObjectSetProperty(context, globalObject, yampName, yampObject, kJSPropertyAttributeReadOnly, nullptr);
+        JSStringRelease(yampName);
+    }
+
+    Resource::Resource(SDK_Interface *lookupTable, SDK_Resource *resource) : m_Resource(resource), m_Logger(Logger(lookupTable, std::format("resource {}", resource->name))), m_ContextWrapper(std::make_unique<wrapper::JSContextWrapper>()){
+        SetupGlobalObjects(m_ContextWrapper.get()->get(), this);
+    }
+
     void Resource::OnStart()
     {
         const std::filesystem::path resourcePath = m_Resource->path;

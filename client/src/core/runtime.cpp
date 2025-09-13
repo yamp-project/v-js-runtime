@@ -17,6 +17,9 @@ namespace js
         return true;
     }
 
+    void Shutdown() {
+    }
+
     void OnResourceStart(SDK_Resource* resource)
     {
         Runtime* runtime = Runtime::GetInstance();
