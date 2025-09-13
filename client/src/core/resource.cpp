@@ -5,9 +5,9 @@
 #include "JavaScriptCore/JavaScript.h"
 
 #include "runtime.h"
-#include "util/utils.h"
 #include "../interop/resource/resource_object.h"
-
+#include "../interop/native/native_object.h"
+#include "util/utils.h"
 
 namespace js {
     void SetupGlobalObjects(JSGlobalContextRef context, Resource *resource) {
@@ -17,10 +17,17 @@ namespace js {
 
         JSObjectRef resourceObject = interop::ResourceObject::CreateResourceObject(context, resource);
 
+        JSObjectRef nativeObject = interop::NativeObject::CreateNativeObject(context);
+
         // add resource object to yamp object
         JSStringRef resourceName = JSStringCreateWithUTF8CString("resource");
         JSObjectSetProperty(context, yampObject, resourceName, resourceObject, kJSPropertyAttributeReadOnly, nullptr);
         JSStringRelease(resourceName);
+
+        // add native to yamp
+        JSStringRef nativeName = JSStringCreateWithUTF8CString("native");
+        JSObjectSetProperty(context, yampObject, nativeName, nativeObject, kJSPropertyAttributeReadOnly, nullptr);
+        JSStringRelease(nativeName);
 
         // Add yamp object to global
         JSStringRef yampName = JSStringCreateWithUTF8CString("yamp");

@@ -18,7 +18,7 @@ namespace js::interop {
         {nullptr, nullptr, 0}
     };
 
-    JSClassRef ResourceObject::GetResourceClass() {
+    JSClassRef ResourceObject::GetClass() {
         if (s_ResourceClass == nullptr) {
             JSClassDefinition classDefinition = kJSClassDefinitionEmpty;
             classDefinition.staticValues = s_Properties;
@@ -34,7 +34,7 @@ namespace js::interop {
     }
 
     JSObjectRef ResourceObject::CreateResourceObject(JSContextRef ctx, Resource *resource) {
-        JSClassRef resourceClass = GetResourceClass();
+        JSClassRef resourceClass = GetClass();
         return JSObjectMake(ctx, resourceClass, resource);
     }
 

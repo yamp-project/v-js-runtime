@@ -14,7 +14,7 @@ namespace js::interop {
             return s_Functions;
         }
 
-        static JSClassRef GetResourceClass();
+        static JSClassRef GetClass();
         static JSObjectRef CreateResourceObject(JSContextRef ctx, Resource* resource);
         static Resource* GetResourceFromObject(JSObjectRef object);
     private:
