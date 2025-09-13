@@ -122,13 +122,13 @@ namespace js
         m_Resources.erase(resource);
     }
 
-    Resource* Runtime::CreateResource(SDK_Resource* SDK_Resource)
+    Resource* Runtime::CreateResource(SDK_Resource* sdk_resource)
     {
-        auto resourcePtr = std::make_unique<Resource>(m_LookupTable, SDK_Resource);
+        auto resourcePtr = std::make_unique<Resource>(m_LookupTable, sdk_resource);
 
-        m_Resources[SDK_Resource] = std::move(resourcePtr);
+        m_Resources[sdk_resource] = std::move(resourcePtr);
 
-        return m_Resources[SDK_Resource].get();
+        return m_Resources[sdk_resource].get();
     }
 
     std::optional<CoreEventType> Runtime::GetCoreEventType(const char* eventName)
