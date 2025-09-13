@@ -66,6 +66,9 @@ namespace js
         }
     }
 
+    JSClassRef GetGlobalTemplate() {
+    }
+
     std::unique_ptr<Runtime> Runtime::s_Instance = nullptr;
 
     Runtime* Runtime::GetInstance()

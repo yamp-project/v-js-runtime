@@ -20,8 +20,6 @@ namespace js
     void OnCoreEvent(CoreEventType type, CAnyArray* args);
     void OnResourceEvent(const char* name, CAnyArray* args);
 
-    JSClassRef GetGlobalTemplate();
-
     class Runtime
     {
     public:

@@ -10,6 +10,7 @@
 
 #include "runtime.h"
 #include "../wrapper/js_context_wrapper.h"
+#include "../wrapper/js_global_object.h"
 #include "../wrapper/js_module_loader.h"
 
 namespace js {
@@ -22,7 +23,9 @@ namespace js {
         void OnEvent(const char* name, const CAnyArray* args);
 
         Resource(SDK_Interface* lookupTable, SDK_Resource* resource)
-                    : m_Resource(resource), m_Logger(Logger(lookupTable, std::format("resource {}", resource->name))), m_ContextWrapper(std::make_unique<wrapper::JSContextWrapper>(GetGlobalTemplate())) {}
+                    : m_Resource(resource), m_Logger(Logger(lookupTable, std::format("resource {}", resource->name))), m_ContextWrapper(std::make_unique<wrapper::JSContextWrapper>()) {
+            wrapper::SetupGlobalObjects(m_ContextWrapper.get(), this);
+        }
 
         ~Resource() = default;
 
