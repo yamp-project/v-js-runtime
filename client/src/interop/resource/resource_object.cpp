@@ -3,7 +3,6 @@
 #include "../../util/js_error_util.h"
 
 namespace js::interop {
-    std::string ResourceObject::s_ParentPath = "resource";
     JSClassRef ResourceObject::s_ResourceClass = nullptr;
 
     JSStaticValue ResourceObject::s_Properties[] = {

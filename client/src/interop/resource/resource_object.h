@@ -8,10 +8,6 @@
 namespace js::interop {
     class ResourceObject final {
     public:
-        static std::string GetParentPath() {
-            return s_ParentPath;
-        }
-
         static JSStaticValue* GetProperties() {
             return s_Properties;
         }
@@ -24,7 +20,6 @@ namespace js::interop {
         static JSObjectRef CreateResourceObject(JSContextRef ctx, Resource* resource);
         static Resource* GetResourceFromObject(JSObjectRef object);
     private:
-        static std::string s_ParentPath;
         static JSClassRef s_ResourceClass;
         static JSStaticValue s_Properties[];
         static JSStaticFunction s_Functions[];
