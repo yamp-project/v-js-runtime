@@ -6,7 +6,8 @@
 namespace js::wrapper {
     class JSContextWrapper {
     public:
-        JSContextWrapper() : m_Context(JSGlobalContextCreate(nullptr)) {}
+        JSContextWrapper() : m_Context(JSGlobalContextCreate(nullptr)) {
+        }
 
         JSContextWrapper(JSClassRef globalClass)
             : m_Context(JSGlobalContextCreateInGroup(nullptr, globalClass)) {}
@@ -17,7 +18,8 @@ namespace js::wrapper {
             }
         }
 
-        JSGlobalContextRef get() { return m_Context; }
+        [[nodiscard]]
+        JSGlobalContextRef get() const { return m_Context; }
 
         JSContextWrapper(const JSContextWrapper&) = delete;
         JSContextWrapper& operator=(const JSContextWrapper&) = delete;

@@ -1,7 +1,7 @@
 #include <yamp-sdk/sdk.h>
 #include "core/runtime.h"
 
-IRuntimeContext GetRuntimeContext()
+SDK_Context GetRuntimeContext()
 {
     return {
         .version = "0.0.1",
@@ -18,7 +18,7 @@ IRuntimeContext GetRuntimeContext()
     };
 }
 
-SDK_EXPORT void RuntimeEntry(RegisterRuntime registerRuntime)
+SDK_EXPORT void RuntimeEntry(const RegisterRuntime registerRuntime)
 {
     js::Runtime* runtime = js::Runtime::Initialize(registerRuntime("js", GetRuntimeContext()));
     runtime->GetLogger().Info("Javascript runtime registered! 👍");

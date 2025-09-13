@@ -8,9 +8,8 @@
 #include <yamp-sdk/sdk.h>
 #include <JavaScriptCore/JavaScript.h>
 
-#include "runtime.h"
-#include "../wrapper/JSContextWrapper.h"
-#include "../wrapper/JSModuleLoader.h"
+#include "../wrapper/js_context_wrapper.h"
+#include "../wrapper/js_module_loader.h"
 
 namespace js {
     class Resource {
@@ -21,8 +20,7 @@ namespace js {
         void OnEvent(CoreEventType type, const CAnyArray* args);
         void OnEvent(const char* name, const CAnyArray* args);
 
-        Resource(ILookupTable* lookupTable, IResource* resource)
-                    : m_Resource(resource), m_Logger(Logger(lookupTable, std::format("resource {}", resource->name))), m_ContextWrapper(std::make_unique<wrapper::JSContextWrapper>(GetGlobalTemplate())) {}
+        Resource(SDK_Interface* lookupTable, SDK_Resource* resource);
 
         ~Resource() = default;
 
@@ -53,7 +51,7 @@ namespace js {
         void handleEvent(const std::vector<JSObjectRef>& functions, const CAnyArray* args);
 
     private:
-        IResource* m_Resource;
+        SDK_Resource* m_Resource;
         Logger m_Logger;
 
         std::map<CoreEventType, std::vector<JSObjectRef>> m_CoreEventCallbacks;
@@ -62,6 +60,8 @@ namespace js {
         std::unique_ptr<wrapper::JSContextWrapper> m_ContextWrapper;
         std::unique_ptr<wrapper::JSModuleLoader> m_ModuleLoader;
     };
+
+    static void SetupGlobalObjects(JSGlobalContextRef context, Resource* resource);
 } // js
 
 #endif //RESOURCE_H

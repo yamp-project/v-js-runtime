@@ -17,7 +17,10 @@ namespace js
         return true;
     }
 
-    void OnResourceStart(IResource* resource)
+    void Shutdown() {
+    }
+
+    void OnResourceStart(SDK_Resource* resource)
     {
         Runtime* runtime = Runtime::GetInstance();
         if (Resource* tlResource = runtime->GetResource(resource); tlResource)
@@ -32,7 +35,7 @@ namespace js
         runtime->GetLogger().Info("Resource %s started", resource->name);
     }
 
-    void OnResourceStop(IResource* resource)
+    void OnResourceStop(SDK_Resource* resource)
     {
         Runtime::GetInstance()->GetLogger().Info("Resource %s stopped", resource->name);
         Runtime::GetInstance()->GetResource(resource)->OnStop();
@@ -66,6 +69,9 @@ namespace js
         }
     }
 
+    JSClassRef GetGlobalTemplate() {
+    }
+
     std::unique_ptr<Runtime> Runtime::s_Instance = nullptr;
 
     Runtime* Runtime::GetInstance()
@@ -74,7 +80,7 @@ namespace js
         return s_Instance.get();
     }
 
-    Runtime* Runtime::Initialize(ILookupTable* lookupTable)
+    Runtime* Runtime::Initialize(SDK_Interface* lookupTable)
     {
         assert(s_Instance == nullptr);
         s_Instance = std::make_unique<Runtime>(lookupTable);
@@ -95,11 +101,11 @@ namespace js
         s_Instance.reset();
     }
 
-    Runtime::Runtime(ILookupTable* lookupTable) : m_LookupTable(lookupTable), m_Logger(Logger(lookupTable, "js"))
+    Runtime::Runtime(SDK_Interface* lookupTable) : m_LookupTable(lookupTable), m_Logger(Logger(lookupTable, "js"))
     {
     }
 
-    Resource* Runtime::GetResource(IResource* resource)
+    Resource* Runtime::GetResource(SDK_Resource* resource)
     {
         auto it = m_Resources.find(resource);
         if (it != m_Resources.end())
@@ -110,7 +116,7 @@ namespace js
         return nullptr;
     }
 
-    void Runtime::UnregisterResource(IResource* resource) {
+    void Runtime::UnregisterResource(SDK_Resource* resource) {
         const auto it = m_Resources.find(resource);
         if (it == m_Resources.end())
         {
@@ -122,13 +128,13 @@ namespace js
         m_Resources.erase(resource);
     }
 
-    Resource* Runtime::CreateResource(IResource* iResource)
+    Resource* Runtime::CreateResource(SDK_Resource* sdk_resource)
     {
-        auto resourcePtr = std::make_unique<Resource>(m_LookupTable, iResource);
+        auto resourcePtr = std::make_unique<Resource>(m_LookupTable, sdk_resource);
 
-        m_Resources[iResource] = std::move(resourcePtr);
+        m_Resources[sdk_resource] = std::move(resourcePtr);
 
-        return m_Resources[iResource].get();
+        return m_Resources[sdk_resource].get();
     }
 
     std::optional<CoreEventType> Runtime::GetCoreEventType(const char* eventName)

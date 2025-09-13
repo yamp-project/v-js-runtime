@@ -101,9 +101,20 @@ function(setup_webkit_jsc)
     set(JSC_CLEAN_INCLUDE_DIR "${CMAKE_BINARY_DIR}/jsc-include")
     file(MAKE_DIRECTORY "${JSC_CLEAN_INCLUDE_DIR}/JavaScriptCore")
 
-    file(COPY "${WEBKIT_SOURCE_DIR}/Source/JavaScriptCore/API/"
-            DESTINATION "${JSC_CLEAN_INCLUDE_DIR}/JavaScriptCore/"
-            FILES_MATCHING PATTERN "*.h")
+    if(WIN32 OR UNIX AND NOT APPLE)
+        file(COPY "${WEBKIT_SOURCE_DIR}/Source/JavaScriptCore/API/"
+                DESTINATION "${JSC_CLEAN_INCLUDE_DIR}/JavaScriptCore/"
+                FILES_MATCHING PATTERN "*.h"
+                PATTERN "*CF.h" EXCLUDE)
+
+        file(READ "${JSC_CLEAN_INCLUDE_DIR}/JavaScriptCore/JavaScriptCore.h" JAVACORE_CONTENT)
+        string(REPLACE "#include <JavaScriptCore/JSStringRefCF.h>" "" JAVACORE_CONTENT "${JAVACORE_CONTENT}")
+        file(WRITE "${JSC_CLEAN_INCLUDE_DIR}/JavaScriptCore/JavaScriptCore.h" "${JAVACORE_CONTENT}")
+    else()
+        file(COPY "${WEBKIT_SOURCE_DIR}/Source/JavaScriptCore/API/"
+                DESTINATION "${JSC_CLEAN_INCLUDE_DIR}/JavaScriptCore/"
+                FILES_MATCHING PATTERN "*.h")
+    endif()
 
     set(JSC_INCLUDE_DIR "${JSC_CLEAN_INCLUDE_DIR}")
 
@@ -151,6 +162,7 @@ function(setup_webkit_jsc)
             -DUSE_SYSTEM_SYSPROF_CAPTURE=OFF
             -DUSE_SYSPROF_CAPTURE=OFF
             -DENABLE_WEBINSPECTORUI=OFF
+            -DUSE_CF=OFF
 
             # Disable graphics and imaging
             -DENABLE_GRAPHICS=OFF

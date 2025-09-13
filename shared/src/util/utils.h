@@ -5,8 +5,6 @@
 #include <cctype>
 #include <fstream>
 
-#define MAX_STR_SIZE = 64;
-
 namespace utils
 {
     inline std::string ReadFile(const std::string& path) {
@@ -103,7 +101,7 @@ namespace utils
         std::string result;
 
         for (size_t i = 0; input[i] != '\0'; ++i) {
-            if (i >= MAX_STR_SIZE) {
+            if (i >= 64) {
                 break;
             }
 
