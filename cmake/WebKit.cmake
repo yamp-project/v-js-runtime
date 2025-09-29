@@ -214,6 +214,7 @@ function(setup_webkit_jsc)
     )
 
     add_library(JavaScriptCore STATIC IMPORTED GLOBAL)
+    add_dependencies(JavaScriptCore WebKit_External)
     file(MAKE_DIRECTORY "${JSC_INCLUDE_DIR}")
     file(MAKE_DIRECTORY "${WEBKIT_INSTALL_DIR}/${JSC_LIBRARY_SUBDIR}")
 
