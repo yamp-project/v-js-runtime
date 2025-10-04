@@ -24,36 +24,6 @@ namespace js::interop {
         lookupTable->nativesFactory->PushArgumentFromBuffer(invoker, &value, sizeof(T));
     }
 
-    JSClassRef NativeObject::s_ResourceClass = nullptr;
-
-    JSStaticValue NativeObject::s_Properties[] = {
-        {nullptr, nullptr, nullptr, 0},
-    };
-
-    JSStaticFunction NativeObject::s_Functions[] = {
-        {"native", c_OnCall, kJSPropertyAttributeReadOnly},
-        {nullptr, nullptr, 0}
-    };
-
-    JSClassRef NativeObject::GetClass() {
-        if (s_ResourceClass == nullptr) {
-            JSClassDefinition classDefinition = kJSClassDefinitionEmpty;
-            classDefinition.staticValues = s_Properties;
-            classDefinition.staticFunctions = s_Functions;
-            classDefinition.className = "Native";
-            classDefinition.initialize = nullptr;
-            classDefinition.finalize = nullptr;
-
-            s_ResourceClass = JSClassCreate(&classDefinition);
-        }
-        return s_ResourceClass;
-    }
-
-    JSObjectRef NativeObject::CreateNativeObject(JSContextRef ctx) {
-        JSClassRef nativeClass = GetClass();
-        return JSObjectMake(ctx, nativeClass, nullptr);
-    }
-
     void NativeObject::PushArg(JSContextRef ctx, JSValueRef arg, CNativeInvoker* invoker, CNativeValueType type, JSValueRef* exception) {
         if (JSValueIsBoolean(ctx, arg)) {
             PushArgumentAsType(invoker, JSValueToBoolean(ctx, arg));
@@ -253,6 +223,12 @@ namespace js::interop {
             default:
                 return JSValueMakeUndefined(ctx);
         }
+    }
+
+    void NativeObject::Initialize(wrapper::JsObject *state) {
+        state->BeginClass("native");
+        state->Function("native", c_OnCall, false);
+        state->EndClass();
     }
 
     JSValueRef NativeObject::c_OnCall(JSContextRef ctx, JSObjectRef function, JSObjectRef thisObject,

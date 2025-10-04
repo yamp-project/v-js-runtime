@@ -2,6 +2,7 @@
 #define V_JS_RUNTIME_INTEROP_NATIVE_H
 #include <JavaScriptCore/JSObjectRef.h>
 #include "../../core/resource.h"
+#include "../../wrapper/js_object.h"
 
 namespace js::interop {
 #pragma pack(push, 1)
@@ -22,20 +23,7 @@ namespace js::interop {
 
     class NativeObject final {
     public:
-        static JSStaticValue* GetProperties() {
-            return s_Properties;
-        }
-
-        static JSStaticFunction* GetFunctions() {
-            return s_Functions;
-        }
-
-        static JSClassRef GetClass();
-        static JSObjectRef CreateNativeObject(JSContextRef ctx);
-    private:
-        static JSClassRef s_ResourceClass;
-        static JSStaticValue s_Properties[];
-        static JSStaticFunction s_Functions[];
+        static void Initialize(wrapper::JsObject* state);
     private:
         static void PushArg(JSContextRef ctx, JSValueRef arg, CNativeInvoker* invoker, CNativeValueType type, JSValueRef* exception);
         static ArgPtr PushArgPtr(CNativeInvoker* invoker, const CNativeValueType type);
@@ -44,7 +32,6 @@ namespace js::interop {
 
         static JSValueRef c_OnCall(JSContextRef ctx, JSObjectRef function, JSObjectRef thisObject,
                                    size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception);
-
     };
 }
 
