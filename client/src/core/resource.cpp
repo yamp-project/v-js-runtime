@@ -10,33 +10,29 @@
 #include "util/utils.h"
 
 namespace js {
-    void SetupGlobalObjects(JSGlobalContextRef context, Resource *resource) {
+    void SetupGlobalObjects(JSGlobalContextRef context, Resource *resource, wrapper::JsObject* state) {
         JSObjectRef globalObject = JSContextGetGlobalObject(context);
 
-        JSObjectRef yampObject = JSObjectMake(context, nullptr, nullptr);
+        interop::NativeObject::Initialize(state);
 
-        JSObjectRef resourceObject = interop::ResourceObject::CreateResourceObject(context, resource);
+        wrapper::JsObjectReturnData data = state->CreateJSObjects(context, resource);
 
-        JSObjectRef nativeObject = interop::NativeObject::CreateNativeObject(context);
+        JSObjectRef yampObject = data.parentObject;
 
-        // add resource object to yamp object
-        JSStringRef resourceName = JSStringCreateWithUTF8CString("resource");
-        JSObjectSetProperty(context, yampObject, resourceName, resourceObject, kJSPropertyAttributeReadOnly, nullptr);
-        JSStringRelease(resourceName);
+        for (const auto& [name, object]: data.dataBuffer) {
+            const JSStringRef _className = JSStringCreateWithUTF8CString(name.c_str());
+            JSObjectSetProperty(context, yampObject, _className, object, kJSPropertyAttributeReadOnly, nullptr);
+            JSStringRelease(_className);
+        }
 
-        // add native to yamp
-        JSStringRef nativeName = JSStringCreateWithUTF8CString("native");
-        JSObjectSetProperty(context, yampObject, nativeName, nativeObject, kJSPropertyAttributeReadOnly, nullptr);
-        JSStringRelease(nativeName);
-
-        // Add yamp object to global
+        // Add parent object to global
         JSStringRef yampName = JSStringCreateWithUTF8CString("yamp");
         JSObjectSetProperty(context, globalObject, yampName, yampObject, kJSPropertyAttributeReadOnly, nullptr);
         JSStringRelease(yampName);
     }
 
     Resource::Resource(SDK_Interface *lookupTable, SDK_Resource *resource) : m_Resource(resource), m_Logger(Logger(lookupTable, std::format("resource {}", resource->name))), m_ContextWrapper(std::make_unique<wrapper::JSContextWrapper>()){
-        SetupGlobalObjects(m_ContextWrapper.get()->get(), this);
+        SetupGlobalObjects(m_ContextWrapper->get(), this, &m_jsObject);
     }
 
     void Resource::OnStart()

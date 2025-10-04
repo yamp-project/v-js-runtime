@@ -6,10 +6,10 @@
 #include "util/logger.h"
 
 #include <yamp-sdk/sdk.h>
-#include <JavaScriptCore/JavaScript.h>
 
 #include "../wrapper/js_context_wrapper.h"
 #include "../wrapper/js_module_loader.h"
+#include "../wrapper/js_object.h"
 
 namespace js {
     class Resource {
@@ -54,6 +54,8 @@ namespace js {
         SDK_Resource* m_Resource;
         Logger m_Logger;
 
+        wrapper::JsObject m_jsObject;
+
         std::map<CoreEventType, std::vector<JSObjectRef>> m_CoreEventCallbacks;
         std::map<std::string, std::vector<JSObjectRef>> m_EventCallbacks;
 
@@ -61,7 +63,7 @@ namespace js {
         std::unique_ptr<wrapper::JSModuleLoader> m_ModuleLoader;
     };
 
-    static void SetupGlobalObjects(JSGlobalContextRef context, Resource* resource);
+    static void SetupGlobalObjects(JSGlobalContextRef context, Resource* resource, wrapper::JsObject* state);
 } // js
 
 #endif //RESOURCE_H
