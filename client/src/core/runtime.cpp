@@ -3,9 +3,8 @@
 #include "util/utils.h"
 
 #include <cassert>
+#include <ranges>
 #include <utility>
-#include <v8.h>
-#include <v8/include/libplatform/libplatform.h>
 
 namespace js
 {
@@ -15,22 +14,13 @@ namespace js
 
         runtime->GetLogger().Info("Javascript runtime initializing");
 
-        // Init V8
-        v8::V8::InitializeICUDefaultLocation("");
-        v8::V8::InitializeExternalStartupData("");
-        std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform();
-        v8::V8::InitializePlatform(platform.get());
-        v8::V8::Initialize();
-
         return true;
     }
 
-    void Shutdown()
-    {
-        ShutdownV8();
+    void Shutdown() {
     }
 
-    void OnResourceStart(IResource* resource)
+    void OnResourceStart(SDK_Resource* resource)
     {
         Runtime* runtime = Runtime::GetInstance();
         if (Resource* tlResource = runtime->GetResource(resource); tlResource)
@@ -45,9 +35,11 @@ namespace js
         runtime->GetLogger().Info("Resource %s started", resource->name);
     }
 
-    void OnResourceStop(IResource* resource)
+    void OnResourceStop(SDK_Resource* resource)
     {
         Runtime::GetInstance()->GetLogger().Info("Resource %s stopped", resource->name);
+        Runtime::GetInstance()->GetResource(resource)->OnStop();
+        Runtime::GetInstance()->UnregisterResource(resource);
     }
 
     void OnTick()
@@ -77,17 +69,7 @@ namespace js
         }
     }
 
-    void ShutdownV8()
-    {
-        for (auto& isolate : Runtime::GetInstance()->GetIsolates())
-        {
-            isolate->Dispose();
-            isolate.release();
-        }
-        Runtime::GetInstance()->GetIsolates().clear();
-
-        v8::V8::Dispose();
-        v8::V8::DisposePlatform();
+    JSClassRef GetGlobalTemplate() {
     }
 
     std::unique_ptr<Runtime> Runtime::s_Instance = nullptr;
@@ -98,7 +80,7 @@ namespace js
         return s_Instance.get();
     }
 
-    Runtime* Runtime::Initialize(ILookupTable* lookupTable)
+    Runtime* Runtime::Initialize(SDK_Interface* lookupTable)
     {
         assert(s_Instance == nullptr);
         s_Instance = std::make_unique<Runtime>(lookupTable);
@@ -110,8 +92,6 @@ namespace js
             s_Instance->m_CoreEventMapping[::utils::StrToCamelCase(eventMeta.name)] = eventMeta.type;
         }
 
-        s_Instance->m_IsolateParams.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
-
         return s_Instance.get();
     }
 
@@ -121,11 +101,11 @@ namespace js
         s_Instance.reset();
     }
 
-    Runtime::Runtime(ILookupTable* lookupTable) : m_LookupTable(lookupTable), m_Logger(Logger(lookupTable, "js"))
+    Runtime::Runtime(SDK_Interface* lookupTable) : m_LookupTable(lookupTable), m_Logger(Logger(lookupTable, "js"))
     {
     }
 
-    Resource* Runtime::GetResource(IResource* resource)
+    Resource* Runtime::GetResource(SDK_Resource* resource)
     {
         auto it = m_Resources.find(resource);
         if (it != m_Resources.end())
@@ -136,19 +116,25 @@ namespace js
         return nullptr;
     }
 
-    Resource* Runtime::CreateResource(IResource* iResource)
+    void Runtime::UnregisterResource(SDK_Resource* resource) {
+        const auto it = m_Resources.find(resource);
+        if (it == m_Resources.end())
+        {
+            return;
+        }
+
+        it->second.reset();
+
+        m_Resources.erase(resource);
+    }
+
+    Resource* Runtime::CreateResource(SDK_Resource* sdk_resource)
     {
-        std::unique_ptr<v8::Isolate> isolate(v8::Isolate::New(m_IsolateParams));
+        auto resourcePtr = std::make_unique<Resource>(m_LookupTable, sdk_resource);
 
-        v8::Isolate* isolatePtr = isolate.get();
+        m_Resources[sdk_resource] = std::move(resourcePtr);
 
-        m_Isolates.push_back(std::move(isolate));
-
-        auto resourcePtr = std::make_unique<Resource>(m_LookupTable, iResource, isolatePtr);
-
-        m_Resources[iResource] = std::move(resourcePtr);
-
-        return m_Resources[iResource].get();
+        return m_Resources[sdk_resource].get();
     }
 
     std::optional<CoreEventType> Runtime::GetCoreEventType(const char* eventName)

@@ -5,8 +5,6 @@
 #include <cctype>
 #include <fstream>
 
-#define MAX_STR_SIZE = 64;
-
 namespace utils
 {
     inline std::string ReadFile(const std::string& path) {
@@ -20,69 +18,78 @@ namespace utils
         return content;
     }
 
-    inline v8::Local<v8::String> StringToV8(v8::Isolate* isolate, const std::string& str) {
-        return v8::String::NewFromUtf8(isolate, str.c_str()).ToLocalChecked();
+    inline JSValueRef StringToJS(JSContextRef ctx, const std::string& str) {
+        JSStringRef jsStr = JSStringCreateWithUTF8CString(str.c_str());
+        JSValueRef value = JSValueMakeString(ctx, jsStr);
+        JSStringRelease(jsStr);
+        return value;
     }
 
-    inline v8::Local<v8::Value> ToV8Value(v8::Isolate* isolate, const CAnyValue& anyValue) {
-        switch (static_cast<CType>(anyValue.type)) {
-            case C_INT_8: {
-                return v8::Number::New(isolate, anyValue.value.m_Int8);
-            }
-            case C_INT_16: {
-                return v8::Number::New(isolate, anyValue.value.m_Int16);
-            }
-            case C_INT_32: {
-                return v8::Number::New(isolate, anyValue.value.m_Int32);
-            }
-            case C_INT_64: {
-                return v8::Number::New(isolate, anyValue.value.m_Int64);
-            }
-            case C_UINT_8: {
-                return v8::Number::New(isolate, anyValue.value.m_Uint8);
-            }
-            case C_UINT_16: {
-                return v8::Number::New(isolate, anyValue.value.m_Uint16);
-            }
-            case C_UINT_32: {
-                return v8::Number::New(isolate, anyValue.value.m_Uint32);
-            }
-            case C_UINT_64: {
-                return v8::Number::New(isolate, anyValue.value.m_Uint64);
-            }
-            case C_DOUBLE: {
-                return v8::Number::New(isolate, anyValue.value.m_Double);
-            }
-            case C_NULL: {
-                // TODO
-            }
-            case C_STRING: {
-                return StringToV8(isolate, anyValue.value.m_String);
-            }
-            case C_FLOAT: {
-                return v8::Number::New(isolate, anyValue.value.m_Float);
-            }
-            case C_BOOL: {
-                return v8::Boolean::New(isolate, anyValue.value.m_Bool);
-            }
-            case C_ANY_ARRAY: {
-                // TODO
-            }
-            case C_ARRAY: {
-                // TODO
-            }
-            case C_DICT: {
-                // TODO
-            }
-            case C_VECTOR: {
-                // TODO
-            }
-            case C_DATE: {
-                // TODO
-            }
-            default: return {};
+    inline JSValueRef ToJSValue(JSContextRef ctx, const CAnyValue& anyValue) {
+    switch (static_cast<CType>(anyValue.type)) {
+        case C_INT_8: {
+            return JSValueMakeNumber(ctx, anyValue.value.m_Int8);
         }
+        case C_INT_16: {
+            return JSValueMakeNumber(ctx, anyValue.value.m_Int16);
+        }
+        case C_INT_32: {
+            return JSValueMakeNumber(ctx, anyValue.value.m_Int32);
+        }
+        case C_INT_64: {
+            return JSValueMakeNumber(ctx, static_cast<double>(anyValue.value.m_Int64));
+        }
+        case C_UINT_8: {
+            return JSValueMakeNumber(ctx, anyValue.value.m_Uint8);
+        }
+        case C_UINT_16: {
+            return JSValueMakeNumber(ctx, anyValue.value.m_Uint16);
+        }
+        case C_UINT_32: {
+            return JSValueMakeNumber(ctx, anyValue.value.m_Uint32);
+        }
+        case C_UINT_64: {
+            return JSValueMakeNumber(ctx, static_cast<double>(anyValue.value.m_Uint64));
+        }
+        case C_DOUBLE: {
+            return JSValueMakeNumber(ctx, anyValue.value.m_Double);
+        }
+        case C_FLOAT: {
+            return JSValueMakeNumber(ctx, static_cast<double>(anyValue.value.m_Float));
+        }
+        case C_BOOL: {
+            return JSValueMakeBoolean(ctx, anyValue.value.m_Bool);
+        }
+        case C_NULL: {
+            return JSValueMakeNull(ctx);
+        }
+        case C_STRING: {
+            return StringToJS(ctx, anyValue.value.m_String);
+        }
+        case C_ANY_ARRAY: {
+            // TODO: Convert to JSArray
+            return JSValueMakeNull(ctx);
+        }
+        case C_ARRAY: {
+            // TODO: Convert to JSArray
+            return JSValueMakeNull(ctx);
+        }
+        case C_DICT: {
+            // TODO: Convert to JSObject
+            return JSValueMakeNull(ctx);
+        }
+        case C_VECTOR: {
+            // TODO: Convert to JSArray
+            return JSValueMakeNull(ctx);
+        }
+        case C_DATE: {
+            // TODO: Convert to JS Date object
+            return JSValueMakeNull(ctx);
+        }
+        default:
+            return JSValueMakeUndefined(ctx);
     }
+}
 
     inline std::string StrToCamelCase(const char* input)
     {
@@ -94,7 +101,7 @@ namespace utils
         std::string result;
 
         for (size_t i = 0; input[i] != '\0'; ++i) {
-            if (i >= MAX_STR_SIZE) {
+            if (i >= 64) {
                 break;
             }
 
@@ -115,14 +122,6 @@ namespace utils
         }
 
         return result;
-    }
-
-    inline float V8ValueToFloat(v8::Isolate* isolate, const v8::Local<v8::Value> value) {
-        if (!value->IsNumber()) {
-            return 0.0f;
-        }
-
-        return static_cast<float>(value->NumberValue(isolate->GetCurrentContext()).ToChecked());
     }
 }
 

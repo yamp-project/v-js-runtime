@@ -16,12 +16,12 @@ template <typename... Args>                                                     
 class Logger
 {
 public:
-    Logger(ILookupTable* lookup): m_LookupTable(lookup)
+    Logger(SDK_Interface* lookup): m_LookupTable(lookup)
     {
 
     }
 
-    Logger(ILookupTable* lookup, std::string  prefix): m_LookupTable(lookup), m_Prefix(std::move(prefix))
+    Logger(SDK_Interface* lookup, std::string  prefix): m_LookupTable(lookup), m_Prefix(std::move(prefix))
     {
 
     }
@@ -32,7 +32,7 @@ public:
     IMPLEMENT_LOG(Error);
 
 private:
-    ILookupTable* m_LookupTable;
+    SDK_Interface* m_LookupTable;
     std::string m_Prefix;
 };
 

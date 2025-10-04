@@ -7,6 +7,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 set(CMAKE_GENERATOR "Ninja" CACHE INTERNAL "" FORCE)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
 if(UNIX)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/build/linux64/${CMAKE_BUILD_TYPE})
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/build/linux64/${CMAKE_BUILD_TYPE})
@@ -34,8 +36,9 @@ file(WRITE shared/src/version.h "// --------------------------------------------
 
 # Vendors
 add_subdirectory(vendors/yamp-sdk)
-include(vendors/v8.cmake)
-include_directories(vendors)
+
+include(WebKit)
+setup_webkit_jsc()
 
 # Runtimes
 add_subdirectory(shared)
