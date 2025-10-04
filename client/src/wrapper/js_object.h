@@ -12,6 +12,11 @@ namespace js {
 }
 
 namespace js::wrapper {
+    struct JsObjectReturnData {
+        std::map<std::string, JSObjectRef> dataBuffer;
+        JSObjectRef parentObject;
+    };
+
     class JsObject {
     public:
         void BeginClass(const std::string &className);
@@ -21,7 +26,7 @@ namespace js::wrapper {
         void Getter(const std::string &interface, JSObjectGetPropertyCallback callback);
         void Function(const std::string &interface, JSObjectCallAsFunctionCallback callback, bool classBound = true);
 
-        std::vector<JSObjectRef> CreateJSObjects(JSContextRef ctx, Resource* providedData);
+        JsObjectReturnData CreateJSObjects(JSContextRef ctx, Resource* providedData);
     private:
         bool m_ClassInit = false;
         std::string m_CurrentClassName;

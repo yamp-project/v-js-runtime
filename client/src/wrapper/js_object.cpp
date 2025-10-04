@@ -31,8 +31,8 @@ namespace js::wrapper {
 
         m_ClassInit = false;
 
-        m_CurrentClassDefinitions.get()->staticValues = m_CurrentProperties.data();
-        m_CurrentClassDefinitions.get()->staticFunctions = m_CurrentFunctions.data();
+        m_CurrentClassDefinitions->staticValues = m_CurrentProperties.data();
+        m_CurrentClassDefinitions->staticFunctions = m_CurrentFunctions.data();
         const JSClassRef classRef = JSClassCreate(m_CurrentClassDefinitions.get());
         m_RegisteredClasses.insert({m_CurrentClassName, std::shared_ptr<OpaqueJSClass>(classRef, JSClassRelease)});
     }
@@ -65,19 +65,33 @@ namespace js::wrapper {
         if (classBound) {
             m_CurrentFunctions.push_back(function);
         } else {
-            m_GlobalFunctions.push_back(function);
+                m_GlobalFunctions.push_back(function);
         }
     }
 
-    std::vector<JSObjectRef> JsObject::CreateJSObjects(const JSContextRef ctx, Resource* providedData) {
-        std::vector<JSObjectRef> objects;
+    JsObjectReturnData JsObject::CreateJSObjects(const JSContextRef ctx, Resource* providedData) {
+        std::map<std::string, JSObjectRef> objects;
 
-        objects.reserve(m_CurrentFunctions.size());
-
-        for (const auto &val: m_RegisteredClasses | std::views::values) {
-            objects.push_back(JSObjectMake(ctx, val.get(), providedData));
+        for (const auto &[name, data]: m_RegisteredClasses) {
+            objects.insert({ name, JSObjectMake(ctx, data.get(), providedData) });
         }
 
-        return objects;
+        JsObjectReturnData returnData;
+        returnData.dataBuffer = std::move(objects);
+
+        // Create parent Object
+        // All functions and getters are available via yamp.[name]
+        JSClassDefinition parentObj;
+
+        *m_CurrentClassDefinitions = kJSClassDefinitionEmpty;
+        m_CurrentClassDefinitions->staticValues = m_GlobalProperties.data();
+        m_CurrentClassDefinitions->staticFunctions = m_GlobalFunctions.data();
+        m_CurrentClassDefinitions->className = m_CurrentClassName.c_str();
+        m_CurrentClassDefinitions->initialize = nullptr;
+        m_CurrentClassDefinitions->finalize = nullptr;
+
+        returnData.parentObject = JSObjectMake(ctx, JSClassCreate(&parentObj), providedData);
+
+        return returnData;
     }
 }
